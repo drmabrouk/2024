@@ -240,6 +240,7 @@ class SM_Member_Manager {
                     'membership_start_date' => self::format_excel_date($row['I'] ?? ''),
                     'professional_grade' => self::map_label_to_key($row['K'] ?? '', $grades),
                     'specialization' => self::map_label_to_key($row['L'] ?? '', $specs),
+                    'faculty' => !empty($row['E']) ? self::map_label_to_key($row['E'], array_flip(SM_Settings::get_faculties())) : 'sports_science', // Default if empty
                     'license_number' => sanitize_text_field($row['M'] ?? ''),
                     'license_issue_date' => self::format_excel_date($row['N'] ?? ''),
                     'facility_name' => sanitize_text_field($row['P'] ?? ''),

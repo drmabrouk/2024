@@ -534,7 +534,8 @@ $statuses = array(
         if (q.length < 3) return;
 
         const action = 'sm_search_members';
-        fetch(ajaxurl + `?action=${action}&member_search=${q}`)
+        const nonce = '<?php echo wp_create_nonce("sm_admin_action"); ?>';
+        fetch(ajaxurl + `?action=${action}&member_search=${q}&nonce=${nonce}`)
         .then(r => r.json())
         .then(res => {
             const results = $('#member-comm-results').empty();

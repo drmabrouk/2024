@@ -111,19 +111,13 @@ $status_labels = [
                                 <div style="font-size: 11px; color: #94a3b8;"><?php echo esc_html($r->email); ?></div>
                             </td>
                             <td>
-                                <div style="display:flex; gap:8px; align-items:center;">
-                                    <button onclick="smToggleReqDetails(<?php echo $r->id; ?>)" class="sm-btn sm-btn-outline" style="padding:6px 12px; font-size:11px; height:auto; width:auto;">التفاصيل</button>
-                                    <div class="sm-actions-dropdown" style="position:relative; display:inline-block;">
-                                        <button class="sm-btn" style="padding:6px 12px; font-size:11px; height:auto; width:auto; background:var(--sm-dark-color);">خيارات ▾</button>
-                                        <div class="sm-actions-content" style="display:none; position:absolute; left:0; top:100%; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); z-index:100; min-width:160px;">
-                                            <a href="#" onclick="processMembership(<?php echo $r->id; ?>, 'update'); return false;" style="display:block; padding:10px 15px; font-size:12px; color:#4a5568; text-decoration:none; border-bottom:1px solid #f1f5f9;">تحديث الحالة</a>
-                                            <a href="#" onclick="smPrintReqForm(<?php echo $r->id; ?>); return false;" style="display:block; padding:10px 15px; font-size:12px; color:#4a5568; text-decoration:none; border-bottom:1px solid #f1f5f9;">طباعة النموذج (A4)</a>
-                                            <?php if($r->status === 'Under Final Review' || current_user_can('sm_full_access')): ?>
-                                                <a href="#" onclick="processMembership(<?php echo $r->id; ?>, 'approved'); return false;" style="display:block; padding:10px 15px; font-size:12px; color:#27ae60; text-decoration:none; border-bottom:1px solid #f1f5f9; font-weight:700;">اعتماد نهائي (Approve Request)</a>
-                                            <?php endif; ?>
-                                            <a href="#" onclick="rejectMembership(<?php echo $r->id; ?>); return false;" style="display:block; padding:10px 15px; font-size:12px; color:#e53e3e; text-decoration:none;">رفض الطلب</a>
-                                        </div>
-                                    </div>
+                                <div style="display:flex; gap:5px; align-items:center;">
+                                    <button onclick="smToggleReqDetails(<?php echo $r->id; ?>)" class="sm-btn sm-btn-outline" style="padding:6px 10px; font-size:11px; height:32px; width:auto; flex-shrink:0;">التفاصيل</button>
+                                    <button onclick="smOpenUpdateStatusModal(<?php echo $r->id; ?>, '<?php echo esc_js($r->status); ?>')" class="sm-btn" style="padding:6px 10px; font-size:11px; height:32px; width:auto; background:#4a5568; flex-shrink:0;">تحديث</button>
+                                    <?php if($r->status === 'Under Final Review' || current_user_can('sm_full_access') || current_user_can('sm_branch_access')): ?>
+                                        <button onclick="processMembership(<?php echo $r->id; ?>, 'approved')" class="sm-btn" style="padding:6px 10px; font-size:11px; height:32px; width:auto; background:#27ae60; font-weight:700; flex-shrink:0;">اعتماد</button>
+                                    <?php endif; ?>
+                                    <button onclick="smOpenRejectModal(<?php echo $r->id; ?>)" class="sm-btn" style="padding:6px 10px; font-size:11px; height:32px; width:auto; background:#e53e3e; flex-shrink:0;">رفض</button>
                                 </div>
                             </td>
                         </tr>
@@ -182,6 +176,37 @@ $status_labels = [
     </div>
 </div>
 
+<!-- Status Update Modal -->
+<div id="sm-status-modal" class="sm-modal" style="display:none;">
+    <div class="sm-modal-content" style="max-width:400px;">
+        <div class="sm-modal-header">
+            <h3 id="sm-status-modal-title">تحديث حالة الطلب</h3>
+            <span class="sm-close" onclick="smCloseStatusModal()">&times;</span>
+        </div>
+        <div class="sm-modal-body">
+            <input type="hidden" id="sm-modal-req-id">
+            <div id="sm-status-select-container">
+                <label style="display:block; margin-bottom:8px; font-weight:700;">اختر الحالة الجديدة:</label>
+                <select id="sm-modal-new-status" class="sm-select">
+                    <?php foreach($status_labels as $val => $info): ?>
+                        <?php if($val !== 'approved' && $val !== 'rejected'): ?>
+                            <option value="<?php echo $val; ?>"><?php echo $info['label']; ?></option>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div id="sm-reject-reason-container" style="display:none;">
+                <label style="display:block; margin-bottom:8px; font-weight:700;">سبب الرفض (سيظهر للمتقدم):</label>
+                <textarea id="sm-modal-reject-reason" class="sm-input" style="height:100px; resize:none;" placeholder="اكتب سبب الرفض هنا..."></textarea>
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button id="sm-modal-submit-btn" onclick="smSubmitModalAction()" class="sm-btn" style="flex:1;">حفظ التغييرات</button>
+                <button onclick="smCloseStatusModal()" class="sm-btn sm-btn-outline" style="flex:1;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .sm-doc-link { display:inline-block; padding:4px 10px; background:#fff; border:1px solid #e2e8f0; border-radius:6px; color:var(--sm-primary-color); text-decoration:none; font-weight:700; font-size:11px; }
 .sm-doc-link:hover { background:var(--sm-primary-color); color:#fff; border-color:var(--sm-primary-color); }
@@ -209,17 +234,53 @@ function smPrintReqForm(id) {
     window.open(ajaxurl + '?action=sm_print&type=membership_form&request_id=' + id, '_blank');
 }
 
-function processMembership(requestId, status) {
-    if (status === 'update') {
-        const newStatus = prompt("أدخل الحالة الجديدة (مثال: Payment Under Review, Payment Approved, Awaiting Physical Documents, Under Final Review):");
-        if (!newStatus) return;
-        status = newStatus;
-    }
+let smCurrentModalMode = ''; // 'update' or 'reject'
 
+function smOpenUpdateStatusModal(id, currentStatus) {
+    smCurrentModalMode = 'update';
+    document.getElementById('sm-modal-req-id').value = id;
+    document.getElementById('sm-modal-new-status').value = currentStatus;
+    document.getElementById('sm-status-modal-title').innerText = 'تحديث حالة الطلب';
+    document.getElementById('sm-status-select-container').style.display = 'block';
+    document.getElementById('sm-reject-reason-container').style.display = 'none';
+    document.getElementById('sm-modal-submit-btn').style.background = '#4a5568';
+    document.getElementById('sm-status-modal').style.display = 'flex';
+}
+
+function smOpenRejectModal(id) {
+    smCurrentModalMode = 'reject';
+    document.getElementById('sm-modal-req-id').value = id;
+    document.getElementById('sm-status-modal-title').innerText = 'رفض طلب العضوية';
+    document.getElementById('sm-status-select-container').style.display = 'none';
+    document.getElementById('sm-reject-reason-container').style.display = 'block';
+    document.getElementById('sm-modal-submit-btn').style.background = '#e53e3e';
+    document.getElementById('sm-status-modal').style.display = 'flex';
+}
+
+function smCloseStatusModal() {
+    document.getElementById('sm-status-modal').style.display = 'none';
+}
+
+function smSubmitModalAction() {
+    const requestId = document.getElementById('sm-modal-req-id').value;
+    if (smCurrentModalMode === 'update') {
+        const status = document.getElementById('sm-modal-new-status').value;
+        processMembership(requestId, status, true);
+    } else {
+        const reason = document.getElementById('sm-modal-reject-reason').value;
+        if (!reason) {
+            smShowNotification("يجب إدخال سبب الرفض.", true);
+            return;
+        }
+        executeReject(requestId, reason);
+    }
+}
+
+function processMembership(requestId, status, fromModal = false) {
     let msg = "هل أنت متأكد من تغيير حالة الطلب؟";
     if(status === 'approved') msg = "هل أنت متأكد من القبول النهائي؟ سيتم إنشاء حساب عضو وتفعيل دخوله للنظام.";
 
-    if (!confirm(msg)) return;
+    if (!fromModal && !confirm(msg)) return;
 
     const action = 'sm_process_membership_request';
     const fd = new FormData();
@@ -240,14 +301,7 @@ function processMembership(requestId, status) {
     }).catch(err => smHandleAjaxError(err));
 }
 
-function rejectMembership(requestId) {
-    const reason = prompt("يرجى إدخال سبب الرفض ليتمكن المتقدم من رؤيته:");
-    if (reason === null) return;
-    if (!reason) {
-        smShowNotification("يجب إدخال سبب الرفض.", true);
-        return;
-    }
-
+function executeReject(requestId, reason) {
     const action = 'sm_process_membership_request';
     const fd = new FormData();
     fd.append('action', action);

@@ -24,7 +24,6 @@ if ($import_results) {
 
             <?php if (!$is_deleted_view && SM_Settings::can_role_access(reset(wp_get_current_user()->roles), 'print_reports')): ?>
                 <button onclick="smOpenPrintCustomizer('members')" class="sm-btn" style="background: #4a5568; width: 160px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: 700;"><span class="dashicons dashicons-printer" style="font-size: 16px; margin-left: 8px;"></span> طباعة مخصصة</button>
-                <a href="<?php echo admin_url('admin-ajax.php?action=sm_print&print_type=id_card'); ?>" target="_blank" class="sm-btn sm-btn-accent" style="background: #27ae60; text-decoration:none; width: 160px; height: 42px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">طباعة كافة البطاقات</a>
             <?php endif; ?>
         </div>
     </div>
@@ -316,7 +315,14 @@ if ($import_results) {
                         </div>
 
                         <div class="sm-form-group"><select name="university" class="sm-select add-cascading" required><option value="">-- اختر الجامعة --</option><?php foreach(SM_Settings::get_universities() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                        <div class="sm-form-group"><select name="faculty" class="sm-select add-cascading" required disabled><option value="">-- اختر الكلية --</option><?php foreach(SM_Settings::get_faculties() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                        <div class="sm-form-group">
+                            <select name="faculty" class="sm-select add-cascading" required disabled>
+                                <option value="">-- اختر الكلية --</option>
+                                <?php foreach(SM_Settings::get_faculties() as $k=>$v): ?>
+                                    <option value="<?php echo $k; ?>" <?php echo ($k === 'sports_science') ? 'selected' : ''; ?>><?php echo $v; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                         <div class="sm-form-group"><select name="department" class="sm-select add-cascading" required disabled><option value="">-- اختر القسم --</option><?php foreach(SM_Settings::get_departments() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
                         <div class="sm-form-group"><select name="specialization" class="sm-select add-cascading" required disabled><option value="">-- اختر التخصص --</option><?php foreach (SM_Settings::get_specializations() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
 
