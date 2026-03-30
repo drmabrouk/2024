@@ -13,7 +13,7 @@ $stats = [
 $current_date = date('Y-m-d');
 
 foreach ($members as $m) {
-    if (!empty($m->facility_number)) {
+    if (!empty($m->facility_number) && !$m->facility_is_deleted) {
         $stats['total']++;
         switch($m->facility_category) {
             case 'A': $stats['cat_a']++; break;
@@ -31,9 +31,21 @@ $registry = SM_DB::get_members([
     'search' => $search,
     'search_facilities' => true,
     'only_with_facility' => true,
+    'facility_is_deleted' => 0,
     'orderby' => 'facility_license_expiration_date ASC',
     'limit' => -1
 ]);
+
+$deleted_registry = SM_DB::get_members([
+    'search' => $search,
+    'search_facilities' => true,
+    'facility_is_deleted' => 1,
+    'orderby' => 'facility_deleted_at DESC',
+    'limit' => -1
+]);
+
+$can_delete = current_user_can('manage_options') || current_user_can('sm_full_access') || current_user_can('sm_branch_access');
+$can_permanent_delete = current_user_can('manage_options') || current_user_can('sm_full_access');
 ?>
 
 <div class="sm-facility-licenses" dir="rtl">
@@ -48,6 +60,59 @@ $registry = SM_DB::get_members([
     <div class="sm-tabs-wrapper" style="display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
         <button class="sm-tab-btn sm-active" onclick="smOpenInternalTab('facility-registry', this)">سجل المنشآت</button>
         <button class="sm-tab-btn" onclick="smOpenInternalTab('facility-requests', this)">طلبات تراخيص المنشآت</button>
+        <button class="sm-tab-btn" onclick="smOpenInternalTab('facility-deleted', this)">المنشآت المحذوفة</button>
+    </div>
+
+    <div id="facility-deleted" class="sm-internal-tab" style="display: none;">
+        <div style="background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #c53030; font-size: 14px;">
+            <span class="dashicons dashicons-warning"></span> تنبيه: المنشآت المحذوفة سيتم إزالتها نهائياً من النظام بعد مرور 3 أشهر من تاريخ الحذف.
+        </div>
+
+        <div class="sm-table-container">
+            <table class="sm-table sm-table-dense">
+                <thead>
+                    <tr>
+                        <th>المنشأة / المالك</th>
+                        <th>رقم الترخيص</th>
+                        <th>تاريخ الحذف</th>
+                        <th>الوقت المتبقي</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($deleted_registry)): ?>
+                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">لا توجد منشآت محذوفة حالياً.</td></tr>
+                    <?php else: foreach ($deleted_registry as $m):
+                        $deleted_at = strtotime($m->facility_deleted_at);
+                        $expiry_at = strtotime('+3 months', $deleted_at);
+                        $remaining = $expiry_at - time();
+                        $days_left = ceil($remaining / (60 * 60 * 24));
+                    ?>
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; color: #4a5568;"><?php echo esc_html($m->facility_name); ?></div>
+                            <div style="font-size: 11px; color: #718096;">المالك: <?php echo esc_html($m->name); ?></div>
+                        </td>
+                        <td style="font-weight: 800;"><?php echo esc_html($m->facility_number); ?></td>
+                        <td><?php echo date('Y-m-d', $deleted_at); ?></td>
+                        <td>
+                            <span class="sm-badge" style="background: #fffaf0; color: #975a16; border: 1px solid #fbd38d;">
+                                متبقي <?php echo $days_left; ?> يوم
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:8px;">
+                                <button onclick="smRestoreFacility(<?php echo $m->id; ?>)" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#38a169; padding: 0 10px;">استعادة</button>
+                                <?php if ($can_permanent_delete): ?>
+                                    <button onclick="smPermanentDeleteFacility(<?php echo $m->id; ?>)" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#e53e3e; padding: 0 10px;">حذف نهائي</button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div id="facility-requests" class="sm-internal-tab" style="display: none;">
@@ -127,6 +192,9 @@ $registry = SM_DB::get_members([
                         <div style="display:flex; gap:8px;">
                             <button onclick="smEditFacility(<?php echo $m->id; ?>)" class="sm-btn sm-btn-outline" style="height:28px; font-size:11px; width:auto; padding: 0 10px;">تعديل</button>
                             <a href="<?php echo admin_url('admin-ajax.php?action=sm_print_facility&member_id='.$m->id); ?>" target="_blank" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#111F35; padding: 0 10px; display:flex; align-items:center;">طباعة</a>
+                            <?php if ($can_delete): ?>
+                                <button onclick="smDeleteFacility(<?php echo $m->id; ?>)" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#e53e3e; padding: 0 10px;">حذف</button>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -255,4 +323,58 @@ document.getElementById('sm-facility-form').addEventListener('submit', function(
         }
     }).catch(err => smHandleAjaxError(err));
 });
+
+function smDeleteFacility(id) {
+    if (!confirm('هل أنت متأكد من حذف هذه المنشأة؟ سيتم نقلها إلى المنشآت المحذوفة.')) return;
+    const fd = new FormData();
+    fd.append('action', 'sm_soft_delete_facility');
+    fd.append('id', id);
+    fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+    fetch(ajaxurl + '?action=sm_soft_delete_facility', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            smShowNotification('تم حذف المنشأة بنجاح');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            smHandleAjaxError(res);
+        }
+    }).catch(err => smHandleAjaxError(err));
+}
+
+function smRestoreFacility(id) {
+    if (!confirm('هل أنت متأكد من استعادة هذه المنشأة؟')) return;
+    const fd = new FormData();
+    fd.append('action', 'sm_restore_facility');
+    fd.append('id', id);
+    fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+    fetch(ajaxurl + '?action=sm_restore_facility', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            smShowNotification('تم استعادة المنشأة بنجاح');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            smHandleAjaxError(res);
+        }
+    }).catch(err => smHandleAjaxError(err));
+}
+
+function smPermanentDeleteFacility(id) {
+    if (!confirm('تحذير: سيتم حذف بيانات هذه المنشأة نهائياً من النظام. هل أنت متأكد؟')) return;
+    const fd = new FormData();
+    fd.append('action', 'sm_permanent_delete_facility');
+    fd.append('id', id);
+    fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+    fetch(ajaxurl + '?action=sm_permanent_delete_facility', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            smShowNotification('تم حذف المنشأة نهائياً');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            smHandleAjaxError(res);
+        }
+    }).catch(err => smHandleAjaxError(err));
+}
 </script>

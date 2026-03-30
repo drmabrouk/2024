@@ -117,6 +117,12 @@ class Syndicate_Management {
             // Licenses Module
             'sm_update_license_ajax' => ['SM_License_Manager', 'ajax_update_license'],
             'sm_update_facility_ajax' => ['SM_License_Manager', 'ajax_update_facility'],
+            'sm_soft_delete_facility' => ['SM_License_Manager', 'ajax_soft_delete_facility'],
+            'sm_restore_facility' => ['SM_License_Manager', 'ajax_restore_facility'],
+            'sm_permanent_delete_facility' => ['SM_License_Manager', 'ajax_permanent_delete_facility'],
+            'sm_soft_delete_license' => ['SM_License_Manager', 'ajax_soft_delete_license'],
+            'sm_restore_license' => ['SM_License_Manager', 'ajax_restore_license'],
+            'sm_permanent_delete_license' => ['SM_License_Manager', 'ajax_permanent_delete_license'],
             'sm_verify_document' => ['SM_License_Manager', 'ajax_verify_document'],
             'sm_verify_suggest' => ['SM_License_Manager', 'ajax_verify_suggest'],
             'sm_print_license' => ['SM_License_Manager', 'ajax_print_license'],
@@ -242,6 +248,7 @@ class Syndicate_Management {
         $this->loader->add_action('sm_scheduled_backup', 'SM_Backup_Manager', 'handle_scheduled_backup');
 
         $this->loader->add_action('sm_daily_maintenance', 'SM_DB', 'delete_expired_messages');
+        $this->loader->add_action('sm_daily_maintenance', 'SM_DB', 'cleanup_deleted_licenses_and_facilities');
         $this->loader->add_action('sm_daily_maintenance', 'SM_Notifications', 'run_daily_checks');
     }
 

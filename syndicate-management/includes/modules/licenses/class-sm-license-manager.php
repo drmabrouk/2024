@@ -93,6 +93,82 @@ class SM_License_Manager {
         }
     }
 
+    public static function ajax_soft_delete_facility() {
+        self::check_capability('sm_manage_licenses');
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $id = intval($_POST['id']);
+        self::validate_member_access($id);
+        if (SM_DB::soft_delete_facility($id)) {
+            SM_Logger::log('حذف مؤقت للمنشأة', "العضو ID: $id");
+            wp_send_json_success();
+        }
+        wp_send_json_error(['message' => 'فشل في حذف المنشأة']);
+    }
+
+    public static function ajax_restore_facility() {
+        self::check_capability('sm_manage_licenses');
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $id = intval($_POST['id']);
+        self::validate_member_access($id);
+        if (SM_DB::restore_facility($id)) {
+            SM_Logger::log('استعادة المنشأة', "العضو ID: $id");
+            wp_send_json_success();
+        }
+        wp_send_json_error(['message' => 'فشل في استعادة المنشأة']);
+    }
+
+    public static function ajax_permanent_delete_facility() {
+        if (!current_user_can('sm_full_access') && !current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized access.']);
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $id = intval($_POST['id']);
+        self::validate_member_access($id);
+        if (SM_DB::permanent_delete_facility($id)) {
+            SM_Logger::log('حذف نهائي للمنشأة', "العضو ID: $id");
+            wp_send_json_success();
+        }
+        wp_send_json_error(['message' => 'فشل في الحذف النهائي للمنشأة']);
+    }
+
+    public static function ajax_soft_delete_license() {
+        self::check_capability('sm_manage_licenses');
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $id = intval($_POST['id']);
+        self::validate_member_access($id);
+        if (SM_DB::soft_delete_license($id)) {
+            SM_Logger::log('حذف مؤقت للترخيص', "العضو ID: $id");
+            wp_send_json_success();
+        }
+        wp_send_json_error(['message' => 'فشل في حذف الترخيص']);
+    }
+
+    public static function ajax_restore_license() {
+        self::check_capability('sm_manage_licenses');
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $id = intval($_POST['id']);
+        self::validate_member_access($id);
+        if (SM_DB::restore_license($id)) {
+            SM_Logger::log('استعادة الترخيص', "العضو ID: $id");
+            wp_send_json_success();
+        }
+        wp_send_json_error(['message' => 'فشل في استعادة الترخيص']);
+    }
+
+    public static function ajax_permanent_delete_license() {
+        if (!current_user_can('sm_full_access') && !current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized access.']);
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $id = intval($_POST['id']);
+        self::validate_member_access($id);
+        if (SM_DB::permanent_delete_license($id)) {
+            SM_Logger::log('حذف نهائي للترخيص', "العضو ID: $id");
+            wp_send_json_success();
+        }
+        wp_send_json_error(['message' => 'فشل في الحذف النهائي للترخيص']);
+    }
+
     public static function ajax_verify_document() {
         try {
             // This is a public search, but we should still have a nonce if called from our forms

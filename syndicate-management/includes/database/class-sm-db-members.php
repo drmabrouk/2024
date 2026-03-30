@@ -120,6 +120,14 @@ class SM_DB_Members {
             $where .= " AND facility_number IS NOT NULL AND facility_number != ''";
         }
 
+        if (isset($args['facility_is_deleted'])) {
+            $where .= $wpdb->prepare(" AND facility_is_deleted = %d", intval($args['facility_is_deleted']));
+        }
+
+        if (isset($args['license_is_deleted'])) {
+            $where .= $wpdb->prepare(" AND license_is_deleted = %d", intval($args['license_is_deleted']));
+        }
+
         if (!empty($args['search'])) {
             $s = '%' . $wpdb->esc_like($args['search']) . '%';
             $search_conds = ["name LIKE %s", "national_id LIKE %s", "membership_number LIKE %s"];
@@ -249,6 +257,14 @@ class SM_DB_Members {
         if (!empty($args['governorate'])) {
             $where .= " AND governorate = %s";
             $params[] = $args['governorate'];
+        }
+
+        if (isset($args['facility_is_deleted'])) {
+            $where .= $wpdb->prepare(" AND facility_is_deleted = %d", intval($args['facility_is_deleted']));
+        }
+
+        if (isset($args['license_is_deleted'])) {
+            $where .= $wpdb->prepare(" AND license_is_deleted = %d", intval($args['license_is_deleted']));
         }
 
         $query = "SELECT COUNT(*) FROM {$wpdb->prefix}sm_members WHERE $where";
@@ -722,5 +738,107 @@ class SM_DB_Members {
             ),
             array('id' => $request_id)
         );
+    }
+
+    public static function soft_delete_facility($id) {
+        global $wpdb;
+        return $wpdb->update(
+            $wpdb->prefix . 'sm_members',
+            ['facility_is_deleted' => 1, 'facility_deleted_at' => current_time('mysql')],
+            ['id' => $id]
+        );
+    }
+
+    public static function restore_facility($id) {
+        global $wpdb;
+        return $wpdb->update(
+            $wpdb->prefix . 'sm_members',
+            ['facility_is_deleted' => 0, 'facility_deleted_at' => null],
+            ['id' => $id]
+        );
+    }
+
+    public static function permanent_delete_facility($id) {
+        global $wpdb;
+        return $wpdb->update(
+            $wpdb->prefix . 'sm_members',
+            [
+                'facility_number' => null,
+                'facility_name' => null,
+                'facility_license_issue_date' => null,
+                'facility_license_expiration_date' => null,
+                'facility_address' => null,
+                'facility_category' => 'C',
+                'facility_is_deleted' => 0,
+                'facility_deleted_at' => null
+            ],
+            ['id' => $id]
+        );
+    }
+
+    public static function soft_delete_license($id) {
+        global $wpdb;
+        return $wpdb->update(
+            $wpdb->prefix . 'sm_members',
+            ['license_is_deleted' => 1, 'license_deleted_at' => current_time('mysql')],
+            ['id' => $id]
+        );
+    }
+
+    public static function restore_license($id) {
+        global $wpdb;
+        return $wpdb->update(
+            $wpdb->prefix . 'sm_members',
+            ['license_is_deleted' => 0, 'license_deleted_at' => null],
+            ['id' => $id]
+        );
+    }
+
+    public static function permanent_delete_license($id) {
+        global $wpdb;
+        return $wpdb->update(
+            $wpdb->prefix . 'sm_members',
+            [
+                'license_number' => null,
+                'license_issue_date' => null,
+                'license_expiration_date' => null,
+                'license_is_deleted' => 0,
+                'license_deleted_at' => null
+            ],
+            ['id' => $id]
+        );
+    }
+
+    public static function cleanup_deleted_licenses_and_facilities() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'sm_members';
+        $three_months_ago = date('Y-m-d H:i:s', strtotime('-3 months'));
+
+        // Permanent delete facilities
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $table SET
+                facility_number = NULL,
+                facility_name = NULL,
+                facility_license_issue_date = NULL,
+                facility_license_expiration_date = NULL,
+                facility_address = NULL,
+                facility_category = 'C',
+                facility_is_deleted = 0,
+                facility_deleted_at = NULL
+            WHERE facility_is_deleted = 1 AND facility_deleted_at <= %s",
+            $three_months_ago
+        ));
+
+        // Permanent delete licenses
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $table SET
+                license_number = NULL,
+                license_issue_date = NULL,
+                license_expiration_date = NULL,
+                license_is_deleted = 0,
+                license_deleted_at = NULL
+            WHERE license_is_deleted = 1 AND license_deleted_at <= %s",
+            $three_months_ago
+        ));
     }
 }

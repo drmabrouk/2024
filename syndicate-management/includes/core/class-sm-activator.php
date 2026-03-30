@@ -60,6 +60,10 @@ class SM_Activator {
             officer_id bigint(20),
             registration_date date,
             sort_order int DEFAULT 0,
+            facility_is_deleted tinyint(1) DEFAULT 0,
+            facility_deleted_at datetime DEFAULT NULL,
+            license_is_deleted tinyint(1) DEFAULT 0,
+            license_deleted_at datetime DEFAULT NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY national_id (national_id),
             KEY wp_user_id (wp_user_id),
@@ -1008,6 +1012,20 @@ class SM_Activator {
         $deleted_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'is_deleted'));
         if (empty($deleted_col)) {
             $wpdb->query("ALTER TABLE $table_name ADD is_deleted tinyint(1) DEFAULT 0 AFTER sort_order");
+        }
+
+        $cols = [
+            'facility_is_deleted' => 'tinyint(1) DEFAULT 0',
+            'facility_deleted_at' => 'datetime DEFAULT NULL',
+            'license_is_deleted'  => 'tinyint(1) DEFAULT 0',
+            'license_deleted_at'  => 'datetime DEFAULT NULL'
+        ];
+
+        foreach ($cols as $col => $def) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $def");
+            }
         }
     }
 
