@@ -197,10 +197,20 @@ class SM_Member_Manager {
 
             // Pre-load mappings
             $govs = array_flip(SM_Settings::get_governorates());
+            $custom_branches = SM_DB::get_branches_data();
+            if (!empty($custom_branches)) {
+                foreach ($custom_branches as $cb) { $govs[$cb->name] = $cb->slug; }
+            }
             $grades = array_flip(SM_Settings::get_professional_grades());
             $degrees = array_flip(SM_Settings::get_academic_degrees());
             $specs = array_flip(SM_Settings::get_specializations());
             $depts = array_flip(SM_Settings::get_departments());
+            $categories = [
+                'A' => 'A', 'B' => 'B', 'C' => 'C',
+                'فئة A' => 'A', 'فئة B' => 'B', 'فئة C' => 'C',
+                'فئة A (كبرى)' => 'A', 'فئة B (متوسطة)' => 'B', 'فئة C (صغرى)' => 'C',
+                'كبرى' => 'A', 'متوسطة' => 'B', 'صغرى' => 'C'
+            ];
             $site_domain = parse_url(home_url(), PHP_URL_HOST);
 
             $current_user_id = get_current_user_id();
@@ -213,8 +223,8 @@ class SM_Member_Manager {
                 if (empty($nid)) { $results['error']++; continue; }
 
                 $gov_val = self::map_label_to_key($row['D'] ?? '', $govs);
-                // Requirement 8: Branch Officer context
-                if (empty($gov_val) && !$is_admin && $my_gov) {
+                // Force Branch Officer's own branch if they are not a global admin
+                if (!$is_admin && $my_gov) {
                     $gov_val = $my_gov;
                 }
 
@@ -234,7 +244,7 @@ class SM_Member_Manager {
                     'license_issue_date' => self::format_excel_date($row['N'] ?? ''),
                     'facility_name' => sanitize_text_field($row['P'] ?? ''),
                     'facility_number' => sanitize_text_field($row['Q'] ?? ''),
-                    'facility_category' => sanitize_text_field($row['R'] ?? 'C'),
+                    'facility_category' => self::map_label_to_key($row['R'] ?? 'C', $categories),
                     'facility_license_issue_date' => self::format_excel_date($row['S'] ?? ''),
                     'email' => !empty($row['U']) ? sanitize_email($row['U']) : "{$nid}@{$site_domain}",
                     'phone' => sanitize_text_field($row['V'] ?? ''),
@@ -243,6 +253,26 @@ class SM_Member_Manager {
                     'residence_street' => sanitize_text_field($row['Y'] ?? ''),
                     'notes' => sanitize_textarea_field($row['Z'] ?? '')
                 ];
+
+                // Handle Dues info in notes (Debt tracking)
+                $dues_info = [];
+                if (!empty($row['J'])) {
+                    $val_j = preg_replace('/[^0-9.]/', '', (string)$row['J']);
+                    if (floatval($val_j) > 0) $dues_info[] = "مديونية عضوية: " . floatval($val_j);
+                }
+                if (!empty($row['O'])) {
+                    $val_o = preg_replace('/[^0-9.]/', '', (string)$row['O']);
+                    if (floatval($val_o) > 0) $dues_info[] = "مديونية ترخيص: " . floatval($val_o);
+                }
+                if (!empty($row['T'])) {
+                    $val_t = preg_replace('/[^0-9.]/', '', (string)$row['T']);
+                    if (floatval($val_t) > 0) $dues_info[] = "مديونية منشأة: " . floatval($val_t);
+                }
+
+                if (!empty($dues_info)) {
+                    $debt_note = "\n[بيانات مديونية مستوردة]: " . implode(' | ', $dues_info);
+                    $member_data['notes'] .= $debt_note;
+                }
 
                 // Auto-calculate expiration dates (+1 year)
                 if ($member_data['membership_start_date']) {
@@ -262,31 +292,22 @@ class SM_Member_Manager {
                     $mid = $existing->id;
                     $results['updated']++;
                 } else {
-                    // NEW MEMBER RULES: Username & Password = National ID
+                    // NEW MEMBER RULES: Username = National ID
                     $mid = SM_DB::add_member($member_data);
                     if (!is_wp_error($mid)) {
                         $results['success']++;
-                        $u = get_user_by('login', $nid);
-                        if ($u) {
-                            wp_set_password($nid, $u->ID);
-                        }
                     } else {
                         $results['error']++;
                         continue;
                     }
                 }
 
-                // Handle Dues info in notes (Debt tracking)
-                $dues_info = [];
-                if (!empty($row['J']) && floatval($row['J']) > 0) $dues_info[] = "مديونية عضوية: " . floatval($row['J']);
-                if (!empty($row['O']) && floatval($row['O']) > 0) $dues_info[] = "مديونية ترخيص: " . floatval($row['O']);
-                if (!empty($row['T']) && floatval($row['T']) > 0) $dues_info[] = "مديونية منشأة: " . floatval($row['T']);
-
-                if (!empty($dues_info)) {
-                    $current_notes = $member_data['notes'];
-                    $debt_note = "\n[بيانات مديونية مستوردة]: " . implode(' | ', $dues_info);
-                    SM_DB::update_member($mid, ['notes' => $current_notes . $debt_note]);
+                // Password = National ID (Applied to both new and updated for strict rule compliance)
+                $u = get_user_by('login', $nid);
+                if ($u) {
+                    wp_set_password($nid, $u->ID);
                 }
+
             }
 
             wp_send_json_success($results);
@@ -303,7 +324,11 @@ class SM_Member_Manager {
 
     private static function format_excel_date($val) {
         if (empty($val)) return null;
+        if ($val instanceof DateTime) {
+            return $val->format('Y-m-d');
+        }
         if (is_numeric($val)) {
+            // Excel serial date to YYYY-MM-DD
             return date('Y-m-d', ($val - 25569) * 86400);
         }
         $ts = strtotime($val);
