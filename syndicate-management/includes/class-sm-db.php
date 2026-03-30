@@ -120,6 +120,34 @@ class SM_DB {
         return SM_DB_Members::process_update_request($id, $status);
     }
 
+    public static function soft_delete_facility($id) {
+        return SM_DB_Members::soft_delete_facility($id);
+    }
+
+    public static function restore_facility($id) {
+        return SM_DB_Members::restore_facility($id);
+    }
+
+    public static function permanent_delete_facility($id) {
+        return SM_DB_Members::permanent_delete_facility($id);
+    }
+
+    public static function soft_delete_license($id) {
+        return SM_DB_Members::soft_delete_license($id);
+    }
+
+    public static function restore_license($id) {
+        return SM_DB_Members::restore_license($id);
+    }
+
+    public static function permanent_delete_license($id) {
+        return SM_DB_Members::permanent_delete_license($id);
+    }
+
+    public static function cleanup_deleted_licenses_and_facilities() {
+        return SM_DB_Members::cleanup_deleted_licenses_and_facilities();
+    }
+
     public static function count_pending_update_requests() {
         return SM_DB_Members::count_pending_update_requests();
     }
