@@ -423,11 +423,9 @@ class SM_Member_Manager {
             if (!current_user_can('sm_manage_users') && !current_user_can('manage_options')) {
                  wp_send_json_error(['message' => 'Unauthorized access.']);
             }
+            check_ajax_referer('sm_syndicateMemberAction', 'sm_nonce');
             if (!function_exists('wp_insert_user')) {
                 require_once(ABSPATH . 'wp-admin/includes/user.php');
-            }
-            if (!wp_verify_nonce($_POST['sm_nonce'], 'sm_syndicateMemberAction')) {
-                wp_send_json_error(['message' => 'Security check failed']);
             }
 
             $user_login = sanitize_user($_POST['user_login']);
@@ -495,11 +493,9 @@ class SM_Member_Manager {
             if (!current_user_can('sm_manage_users') && !current_user_can('manage_options')) {
                  wp_send_json_error(['message' => 'Unauthorized access.']);
             }
+            check_ajax_referer('sm_syndicateMemberAction', 'sm_nonce');
             if (!function_exists('wp_update_user')) {
                 require_once(ABSPATH . 'wp-admin/includes/user.php');
-            }
-            if (!wp_verify_nonce($_POST['sm_nonce'], 'sm_syndicateMemberAction')) {
-                wp_send_json_error(['message' => 'Security check failed']);
             }
 
             $uid = intval($_POST['edit_officer_id']);
@@ -563,11 +559,9 @@ class SM_Member_Manager {
     public static function ajax_delete_staff() {
         try {
             self::check_capability('sm_manage_users');
+            check_ajax_referer('sm_syndicateMemberAction', 'nonce');
             if (!function_exists('wp_delete_user')) {
                 require_once(ABSPATH . 'wp-admin/includes/user.php');
-            }
-            if (!wp_verify_nonce($_POST['nonce'], 'sm_syndicateMemberAction')) {
-                wp_send_json_error(['message' => 'Security check failed']);
             }
             $uid = intval($_POST['user_id']);
             if ($uid === get_current_user_id()) {
@@ -585,6 +579,7 @@ class SM_Member_Manager {
             if (!current_user_can('sm_manage_users') && !current_user_can('manage_options')) {
                 wp_die('Unauthorized');
             }
+            check_admin_referer('sm_admin_action', 'nonce');
 
             $args = array(
                 'number' => -1,
@@ -634,11 +629,9 @@ class SM_Member_Manager {
     public static function ajax_bulk_delete_users() {
         try {
             self::check_capability('sm_manage_users');
+            check_ajax_referer('sm_syndicateMemberAction', 'nonce');
             if (!function_exists('wp_delete_user')) {
                 require_once(ABSPATH . 'wp-admin/includes/user.php');
-            }
-            if (!wp_verify_nonce($_POST['nonce'], 'sm_syndicateMemberAction')) {
-                wp_send_json_error(['message' => 'Security check failed']);
             }
             $ids = explode(',', $_POST['user_ids']);
             foreach ($ids as $id) {
@@ -859,6 +852,7 @@ class SM_Member_Manager {
             if (!is_user_logged_in()) {
                 wp_send_json_error(['message' => 'Unauthorized']);
             }
+            check_ajax_referer('sm_admin_action', 'nonce');
             $mid = intval($_GET['member_id']);
             self::validate_member_access($mid);
             wp_send_json_success(SM_DB::get_member_documents($mid, $_GET));

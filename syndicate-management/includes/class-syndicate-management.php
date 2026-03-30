@@ -221,6 +221,7 @@ class Syndicate_Management {
     }
 
     public static function ajax_ping() {
+        check_ajax_referer('sm_admin_action', 'nonce');
         wp_send_json_success(['pong' => true, 'time' => current_time('mysql'), 'user_id' => get_current_user_id()]);
     }
 

@@ -182,7 +182,7 @@ class SM_Messaging_Manager {
     }
 
     public static function ajax_get_tickets() {
-        if (!is_user_logged_in()) {
+        if (!is_user_logged_in() || !current_user_can('read')) {
             wp_send_json_error(['message' => 'Unauthorized']);
         }
         if (isset($_REQUEST['nonce'])) {
@@ -250,7 +250,7 @@ class SM_Messaging_Manager {
     }
 
     public static function ajax_get_ticket_details() {
-        if (!is_user_logged_in()) {
+        if (!is_user_logged_in() || !current_user_can('read')) {
             wp_send_json_error(['message' => 'Unauthorized']);
         }
         if (isset($_REQUEST['nonce'])) {
@@ -357,6 +357,7 @@ class SM_Messaging_Manager {
 
     public static function ajax_get_communication_templates() {
         self::check_capability('sm_manage_system');
+        check_ajax_referer('sm_admin_action', 'nonce');
         wp_send_json_success(SM_DB::get_notification_templates());
     }
 

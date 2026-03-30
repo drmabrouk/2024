@@ -129,6 +129,7 @@ class SM_Service_Manager {
 
     public static function ajax_submit_service_request() {
         try {
+            check_ajax_referer('sm_contact_action', 'nonce');
             $sid = intval($_POST['service_id']);
         $service = SM_DB_Services::get_service_by_id($sid);
 

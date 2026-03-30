@@ -114,6 +114,7 @@ class SM_Education_Manager {
     public static function ajax_get_group_members() {
         try {
             self::check_capability('sm_manage_system');
+            check_ajax_referer('sm_admin_action', 'nonce');
             $gid = intval($_REQUEST['group_id'] ?? 0);
             if (!$gid) wp_send_json_error(['message' => 'Group ID required']);
             global $wpdb;
@@ -491,6 +492,7 @@ class SM_Education_Manager {
     public static function ajax_get_live_security_logs_ajax() {
         try {
             self::check_capability('sm_manage_system');
+            check_ajax_referer('sm_admin_action', 'nonce');
             global $wpdb;
             $logs = $wpdb->get_results("
                 SELECT l.*, m.name as member_name
@@ -505,6 +507,7 @@ class SM_Education_Manager {
     public static function ajax_get_live_sessions_ajax() {
         try {
             self::check_capability('sm_manage_system');
+            check_ajax_referer('sm_admin_action', 'nonce');
             global $wpdb;
             $sessions = $wpdb->get_results("
                 SELECT a.*, s.title, m.name as member_name
