@@ -49,7 +49,7 @@ $can_permanent_delete = current_user_can('manage_options') || current_user_can('
 
 <div class="sm-practice-licenses" dir="rtl">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h3 style="margin:0;">إدارة تصاريح تراخيص المزاولة</h3>
+        <h3 style="margin:0;">قسم تراخيص المزاولة المهنية</h3>
         <div style="display:flex; gap:10px;">
             <button onclick="smOpenPrintCustomizer('practice_licenses')" class="sm-btn" style="background: #4a5568; width: auto;"><span class="dashicons dashicons-printer"></span> طباعة السجل</button>
             <button onclick="smOpenLicenseIssuanceModal()" class="sm-btn" style="width:auto;">+ إصدار / تجديد تصريح</button>

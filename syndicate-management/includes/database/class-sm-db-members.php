@@ -330,7 +330,7 @@ class SM_DB_Members {
             'specialization' => sanitize_text_field($data['specialization'] ?? ''),
             'academic_degree' => sanitize_text_field($data['academic_degree'] ?? ''),
             'university' => sanitize_text_field($data['university'] ?? ''),
-            'faculty' => sanitize_text_field($data['faculty'] ?? ''),
+            'faculty' => sanitize_text_field($data['faculty'] ?? 'sports_science'),
             'department' => sanitize_text_field($data['department'] ?? ''),
             'graduation_date' => (!empty($data['graduation_date']) && $data['graduation_date'] !== '0000-00-00') ? sanitize_text_field($data['graduation_date']) : null,
             'residence_street' => sanitize_textarea_field($data['residence_street'] ?? ''),
