@@ -947,7 +947,7 @@ class SM_Activator {
                 'content' => '[sm_admin]'
             ),
             'services' => array(
-                'title' => 'الخدمات الرقمية',
+                'title' => 'إدارة الخدمات الرقمية',
                 'content' => '[services]',
                 'shortcode' => 'services'
             ),
@@ -957,7 +957,7 @@ class SM_Activator {
                 'shortcode' => 'sm_branches'
             ),
             'practice-test' => array(
-                'title' => 'الاختبارات المهنية',
+                'title' => 'امتحانات تراخيص المزاولة',
                 'content' => '[test]'
             )
         );

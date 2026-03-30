@@ -152,9 +152,9 @@ $member_is_admin_role = !empty($target_user->roles) && array_intersect($target_u
                     <?php if (!$member_is_admin_role): ?>
                         <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('license-status-tab', this)"><span class="dashicons dashicons-id-alt"></span> <span>حالة التراخيص</span></button>
                         <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('finance-management', this)"><span class="dashicons dashicons-money-alt"></span> <span>المالية والاستحقاقات</span></button>
-                        <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('document-vault', this); smLoadDocuments();"><span class="dashicons dashicons-portfolio"></span> <span>الأرشيف الرقمي</span></button>
-                        <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('digital-services-tab', this)"><span class="dashicons dashicons-cloud"></span> <span>الخدمات الرقمية</span></button>
-                        <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('exams-tab', this)"><span class="dashicons dashicons-welcome-learn-more"></span> <span>الاختبارات المهنية</span></button>
+                        <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('document-vault', this); smLoadDocuments();"><span class="dashicons dashicons-portfolio"></span> <span>قسم الأرشيف الرقمي</span></button>
+                        <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('digital-services-tab', this)"><span class="dashicons dashicons-cloud"></span> <span>إدارة الخدمات الرقمية</span></button>
+                        <button class="sm-portal-nav-btn" onclick="smOpenInternalTab('exams-tab', this)"><span class="dashicons dashicons-welcome-learn-more"></span> <span>امتحانات تراخيص المزاولة</span></button>
                     <?php endif; ?>
                 </nav>
             </div>
@@ -171,10 +171,10 @@ $member_is_admin_role = !empty($target_user->roles) && array_intersect($target_u
                 <button class="sm-tab-btn" onclick="smOpenInternalTab('professional-requests-tab', this)"><span class="dashicons dashicons-awards"></span> الطلبات المهنية</button>
                 <button class="sm-tab-btn" onclick="smOpenInternalTab('license-status-tab', this)"><span class="dashicons dashicons-id-alt"></span> حالة التراخيص</button>
                 <button class="sm-tab-btn" onclick="smOpenInternalTab('finance-management', this)"><span class="dashicons dashicons-money-alt"></span> المالية والاستحقاقات</button>
-                <button class="sm-tab-btn" onclick="smOpenInternalTab('document-vault', this); smLoadDocuments();"><span class="dashicons dashicons-portfolio"></span> الأرشيف الرقمي</button>
+                <button class="sm-tab-btn" onclick="smOpenInternalTab('document-vault', this); smLoadDocuments();"><span class="dashicons dashicons-portfolio"></span> قسم الأرشيف الرقمي</button>
                 <button class="sm-tab-btn" onclick="smOpenInternalTab('messaging-hub-tab', this)"><span class="dashicons dashicons-email"></span> المراسلات والشكاوى</button>
-                <button class="sm-tab-btn" onclick="smOpenInternalTab('digital-services-tab', this)"><span class="dashicons dashicons-cloud"></span> الخدمات الرقمية</button>
-                <button class="sm-tab-btn" onclick="smOpenInternalTab('exams-tab', this)"><span class="dashicons dashicons-welcome-learn-more"></span> الاختبارات المهنية</button>
+                <button class="sm-tab-btn" onclick="smOpenInternalTab('digital-services-tab', this)"><span class="dashicons dashicons-cloud"></span> إدارة الخدمات الرقمية</button>
+                <button class="sm-tab-btn" onclick="smOpenInternalTab('exams-tab', this)"><span class="dashicons dashicons-welcome-learn-more"></span> امتحانات تراخيص المزاولة</button>
             <?php endif; ?>
         </div>
     <?php endif; ?>
@@ -329,8 +329,8 @@ $member_is_admin_role = !empty($target_user->roles) && array_intersect($target_u
 
     <div id="exams-tab" class="sm-internal-tab" style="display: none;">
         <div style="background:#fff; padding: 35px; border-radius:20px; border:1px solid #e2e8f0; min-height:500px; box-shadow: var(--sm-shadow);">
-            <h3 style="margin:0 0 10px 0; font-weight:900; color:var(--sm-dark-color);">اختبارات الممارسة المهنية</h3>
-            <p style="color:#64748b; margin-bottom: 30px; font-size:14px;">يجب اجتياز الاختبارات المقررة من النقابة العامة للحصول على أو تجديد تراخيص مزاولة المهنة والترقيات الوظيفية.</p>
+            <h3 style="margin:0 0 10px 0; font-weight:900; color:var(--sm-dark-color);">امتحانات تراخيص المزاولة</h3>
+            <p style="color:#64748b; margin-bottom: 30px; font-size:14px;">يجب اجتياز الامتحانات المقررة من النقابة العامة للحصول على أو تجديد تراخيص مزاولة المهنة والترقيات الوظيفية.</p>
             <?php include SM_PLUGIN_DIR . 'templates/public-dashboard-summary.php'; ?>
         </div>
     </div>

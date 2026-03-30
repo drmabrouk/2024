@@ -11,7 +11,7 @@ $current_user_gov = get_user_meta(get_current_user_id(), 'sm_governorate', true)
     <!-- Header & Action -->
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
         <div>
-            <h2 style="margin:0; font-weight:800; color:var(--sm-dark-color);">إدارة فروع ولجان النقابة</h2>
+            <h2 style="margin:0; font-weight:800; color:var(--sm-dark-color);">قسم فروع النقابة</h2>
             <p style="margin:5px 0 0 0; color:#64748b; font-size:13px;">إدارة التواجد الجغرافي، اللجان، والرسوم المالية الخاصة بالفروع.</p>
         </div>
         <div style="display: flex; gap: 10px;">
