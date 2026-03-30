@@ -215,35 +215,30 @@ class SM_License_Manager {
                 if (!empty($blocks)) wp_send_json_success($blocks);
             }
 
-            // 2. Exact Match Searches (Display ONLY matching record)
+            // 2. Exact Match Searches (Return Full Aggregated Report for Identification)
+            $found_member = null;
             if ($type === 'membership' || ($type === 'numeric_short' && empty($blocks))) {
-                $member = SM_DB::get_member_by_membership_number($val);
-                if ($member) {
-                    if (!$is_admin && $my_gov && $member->governorate !== $my_gov) {
-                        wp_send_json_error(['message' => 'عذراً، السجل مطلوب من فرع خارج صلاحياتك.']);
-                    }
-                    wp_send_json_success([[ 'type' => 'membership', 'membership' => [ 'number' => $member->membership_number, 'status' => $member->membership_status ?: 'Active', 'expiry' => $member->membership_expiration_date ?: '---' ] ]]);
-                }
+                $found_member = SM_DB::get_member_by_membership_number($val);
+            }
+            if (!$found_member && ($type === 'practice' || ($type === 'numeric_short' && empty($blocks)))) {
+                $found_member = SM_DB::get_member_by_license_number($val);
+            }
+            if (!$found_member && ($type === 'facility' || ($type === 'numeric_short' && empty($blocks)))) {
+                $found_member = SM_DB::get_member_by_facility_number($val);
             }
 
-            if ($type === 'practice' || ($type === 'numeric_short' && empty($blocks))) {
-                $member = SM_DB::get_member_by_license_number($val);
-                if ($member) {
-                    if (!$is_admin && $my_gov && $member->governorate !== $my_gov) {
-                        wp_send_json_error(['message' => 'عذراً، السجل مطلوب من فرع خارج صلاحياتك.']);
-                    }
-                    wp_send_json_success([[ 'type' => 'practice', 'practice' => [ 'number' => $member->license_number, 'issue_date' => $member->license_issue_date ?: '---', 'expiry' => $member->license_expiration_date ?: '---' ] ]]);
+            if ($found_member) {
+                if (!$is_admin && $my_gov && $found_member->governorate !== $my_gov) {
+                    wp_send_json_error(['message' => 'عذراً، لا تملك صلاحية الوصول لبيانات هذا السجل في فرع آخر.']);
                 }
-            }
+                $blocks[] = [ 'type' => 'profile', 'owner' => self::format_owner_data($found_member, $grades, $specs) ];
+                if ($found_member->membership_number) $blocks[] = [ 'type' => 'membership', 'membership' => [ 'number' => $found_member->membership_number, 'status' => $found_member->membership_status ?: 'Active', 'expiry' => $found_member->membership_expiration_date ?: '---' ] ];
+                if ($found_member->license_number) $blocks[] = [ 'type' => 'practice', 'practice' => [ 'number' => $found_member->license_number, 'issue_date' => $found_member->license_issue_date ?: '---', 'expiry' => $found_member->license_expiration_date ?: '---' ] ];
+                if ($found_member->facility_number) $blocks[] = [ 'type' => 'facility', 'facility' => [ 'name' => $found_member->facility_name, 'number' => $found_member->facility_number, 'category' => $found_member->facility_category, 'address' => $found_member->facility_address ?: '---', 'expiry' => $found_member->facility_license_expiration_date ?: '---' ] ];
 
-            if ($type === 'facility' || ($type === 'numeric_short' && empty($blocks))) {
-                $member = SM_DB::get_member_by_facility_number($val);
-                if ($member) {
-                    if (!$is_admin && $my_gov && $member->governorate !== $my_gov) {
-                        wp_send_json_error(['message' => 'عذراً، السجل مطلوب من فرع خارج صلاحياتك.']);
-                    }
-                    wp_send_json_success([[ 'type' => 'facility', 'facility' => [ 'name' => $member->facility_name, 'number' => $member->facility_number, 'category' => $member->facility_category, 'address' => $member->facility_address ?: '---', 'expiry' => $member->facility_license_expiration_date ?: '---' ] ]]);
-                }
+                $reqs = self::find_tracking_by_national_id($found_member->national_id);
+                foreach ($reqs as $r) { $blocks[] = ['type' => 'tracking', 'tracking' => $r]; }
+                wp_send_json_success($blocks);
             }
 
             if ($type === 'tracking') {
@@ -256,12 +251,21 @@ class SM_License_Manager {
                 }
             }
 
-            // Fallback: Partial Name search
+            // Fallback: Partial Name or Facility Name search
             if ($type === 'auto' && strlen($val) >= 3 && !is_numeric($val)) {
-                $members = SM_DB::get_members(['search' => $val, 'limit' => 1]);
+                // Try searching members (including facility names)
+                $members = SM_DB::get_members(['search' => $val, 'limit' => 5]);
                 if (!empty($members)) {
-                    $m = $members[0];
-                    wp_send_json_success([[ 'type' => 'profile', 'owner' => self::format_owner_data($m, $grades, $specs) ]]);
+                    $all_blocks = [];
+                    foreach ($members as $m) {
+                        if (!$is_admin && $my_gov && $m->governorate !== $my_gov) continue;
+
+                        $all_blocks[] = [ 'type' => 'profile', 'owner' => self::format_owner_data($m, $grades, $specs) ];
+                        if ($m->membership_number) $all_blocks[] = [ 'type' => 'membership', 'membership' => [ 'number' => $m->membership_number, 'status' => $m->membership_status ?: 'Active', 'expiry' => $m->membership_expiration_date ?: '---' ] ];
+                        if ($m->license_number) $all_blocks[] = [ 'type' => 'practice', 'practice' => [ 'number' => $m->license_number, 'issue_date' => $m->license_issue_date ?: '---', 'expiry' => $m->license_expiration_date ?: '---' ] ];
+                        if ($m->facility_number) $all_blocks[] = [ 'type' => 'facility', 'facility' => [ 'name' => $m->facility_name, 'number' => $m->facility_number, 'category' => $m->facility_category, 'address' => $m->facility_address ?: '---', 'expiry' => $m->facility_license_expiration_date ?: '---' ] ];
+                    }
+                    if (!empty($all_blocks)) wp_send_json_success($all_blocks);
                 }
             }
 
@@ -395,6 +399,8 @@ class SM_License_Manager {
             foreach ($res as $r) {
                 if ($type === 'national_id' || $type === 'auto') $sug[] = $r->national_id;
                 if ($type === 'name' || $type === 'auto') $sug[] = $r->name;
+                if ($type === 'membership' || $type === 'auto') if($r->membership_number) $sug[] = $r->membership_number;
+                if ($type === 'practice' || $type === 'auto') if($r->license_number) $sug[] = $r->license_number;
             }
             wp_send_json_success(array_values(array_unique(array_filter($sug))));
         } catch (Throwable $e) {
