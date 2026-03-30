@@ -492,6 +492,7 @@ class SM_Public {
             check_admin_referer('sm_admin_action', 'sm_admin_nonce');
             $data = SM_Settings::get_cover_settings();
             $data['welcome_msg'] = sanitize_text_field($_POST['welcome_msg']);
+            $data['welcome_sub_msg'] = sanitize_text_field($_POST['welcome_sub_msg']);
             $data['login_btn_label'] = sanitize_text_field($_POST['login_btn_label']);
             $data['services_btn_label'] = sanitize_text_field($_POST['services_btn_label']);
             $data['filter_intensity'] = sanitize_text_field($_POST['filter_intensity']);
@@ -523,7 +524,7 @@ class SM_Public {
 
         ob_start();
         ?>
-        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:200px; border-radius:15px; overflow:hidden; margin:0; box-shadow:none;">
+        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:240px; border-radius:15px; overflow:hidden; margin:0; box-shadow:none;">
             <div class="sm-cover-slider" style="width:100%; height:100%; position:relative;">
                 <?php foreach($images as $idx => $img): ?>
                     <div class="sm-cover-slide <?php echo $idx === 0 ? 'active' : ''; ?>" style="position:absolute; top:0; left:0; width:100%; height:100%; background:url('<?php echo esc_url($img); ?>') center/cover no-repeat; opacity:<?php echo $idx === 0 ? '1' : '0'; ?>; transition: opacity 1s ease-in-out;">
@@ -533,7 +534,12 @@ class SM_Public {
             </div>
 
             <div class="sm-cover-content" style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:0 30px; z-index:10; color:#fff;">
-                <h1 class="sm-cover-title" style="font-size:1.4em; font-weight:800; margin:0 0 15px 0; color:#fff; text-shadow:none;"><?php echo esc_html($settings['welcome_msg']); ?></h1>
+                <h1 class="sm-cover-title" style="font-size:1.6em; font-weight:800; margin:0; color:#fff; text-shadow:none;"><?php echo esc_html($settings['welcome_msg']); ?></h1>
+                <?php if($settings['welcome_sub_msg']): ?>
+                    <p class="sm-cover-desc" style="font-size:14px; font-weight:400; margin:10px 0 20px 0; color:rgba(255,255,255,0.9); text-shadow:none; max-width:600px; line-height:1.5;"><?php echo esc_html($settings['welcome_sub_msg']); ?></p>
+                <?php else: ?>
+                    <div style="height:15px;"></div>
+                <?php endif; ?>
                 <div style="display:flex; gap:10px;">
                     <a href="<?php echo is_user_logged_in() ? home_url('/dashboard') : home_url('/sm-login'); ?>" class="sm-btn-cover" style="height:36px; padding:0 20px; font-weight:700; border-radius:8px; font-size:13px; display:flex; align-items:center; background:#fff; color:var(--sm-primary-color) !important; text-decoration:none !important; border:none; box-shadow:none;">
                         <?php echo esc_html($settings['login_btn_label']); ?>
@@ -547,9 +553,10 @@ class SM_Public {
             <style>
                 .sm-btn-cover:hover { opacity: 0.9; }
                 @media (max-width: 768px) {
-                    .sm-cover-box { height: 160px !important; border-radius: 10px !important; }
+                    .sm-cover-box { height: 200px !important; border-radius: 10px !important; }
                     .sm-cover-content { padding: 0 20px !important; align-items: center !important; text-align: center !important; }
-                    .sm-cover-title { font-size: 1.1em !important; margin-bottom: 12px !important; }
+                    .sm-cover-title { font-size: 1.3em !important; }
+                    .sm-cover-desc { font-size: 12px !important; margin: 8px 0 15px 0 !important; }
                     .sm-btn-cover { height: 32px !important; padding: 0 15px !important; font-size: 12px !important; }
                 }
             </style>
