@@ -1,0 +1,1202 @@
+<?php
+
+class SM_Activator {
+
+    public static function activate() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+        $installed_ver = get_option('sm_db_version');
+
+        // Migration: Rename old tables if they exist
+        if (version_compare($installed_ver, SM_VERSION, '<')) {
+            self::migrate_tables();
+            self::migrate_settings();
+        }
+
+        $sql = "";
+
+        // Members Table
+        $table_name = $wpdb->prefix . 'sm_members';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            national_id varchar(14) NOT NULL,
+            member_code tinytext,
+            name tinytext NOT NULL,
+            gender enum('male', 'female') DEFAULT 'male',
+            professional_grade tinytext,
+            specialization tinytext,
+            academic_degree tinytext,
+            university tinytext,
+            faculty tinytext,
+            department tinytext,
+            graduation_date date,
+            residence_street text,
+            residence_city tinytext,
+            residence_governorate tinytext,
+            governorate tinytext,
+            membership_number tinytext,
+            membership_start_date date,
+            membership_expiration_date date,
+            membership_status tinytext,
+            license_number tinytext,
+            license_issue_date date,
+            license_expiration_date date,
+            facility_number tinytext,
+            facility_name tinytext,
+            facility_license_issue_date date,
+            facility_license_expiration_date date,
+            facility_address text,
+            sub_syndicate tinytext,
+            facility_category enum('A', 'B', 'C') DEFAULT 'C',
+            last_paid_membership_year int DEFAULT 0,
+            last_paid_license_year int DEFAULT 0,
+            email tinytext,
+            phone tinytext,
+            alt_phone tinytext,
+            notes text,
+            photo_url text,
+            province_of_birth tinytext,
+            wp_user_id bigint(20),
+            officer_id bigint(20),
+            registration_date date,
+            sort_order int DEFAULT 0,
+            PRIMARY KEY  (id),
+            UNIQUE KEY national_id (national_id),
+            KEY wp_user_id (wp_user_id),
+            KEY officer_id (officer_id)
+        ) $charset_collate;\n";
+
+
+        // Messages Table
+        $table_name = $wpdb->prefix . 'sm_messages';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            sender_id bigint(20) NOT NULL,
+            receiver_id bigint(20) NOT NULL,
+            member_id mediumint(9),
+            message text NOT NULL,
+            file_url text,
+            governorate varchar(50),
+            is_read tinyint(1) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY sender_id (sender_id),
+            KEY receiver_id (receiver_id),
+            KEY member_id (member_id),
+            KEY governorate (governorate)
+        ) $charset_collate;\n";
+
+        // Logs Table
+        $table_name = $wpdb->prefix . 'sm_logs';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20),
+            action tinytext NOT NULL,
+            details text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY user_id (user_id)
+        ) $charset_collate;\n";
+
+        // Surveys Table (Now Professional Practice Tests)
+        $table_name = $wpdb->prefix . 'sm_surveys';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            title tinytext NOT NULL,
+            questions text NOT NULL,
+            recipients tinytext NOT NULL,
+            specialty varchar(100) DEFAULT '',
+            test_type varchar(100) DEFAULT 'practice',
+            time_limit int DEFAULT 30,
+            max_attempts int DEFAULT 1,
+            pass_score int DEFAULT 50,
+            branch varchar(50) DEFAULT 'all',
+            start_time datetime DEFAULT NULL,
+            end_time datetime DEFAULT NULL,
+            show_results tinyint(1) DEFAULT 1,
+            random_order tinyint(1) DEFAULT 0,
+            randomize_answers tinyint(1) DEFAULT 0,
+            lock_navigation tinyint(1) DEFAULT 0,
+            auto_grade tinyint(1) DEFAULT 1,
+            status enum('active', 'completed', 'cancelled') DEFAULT 'active',
+            created_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY created_by (created_by)
+        ) $charset_collate;\n";
+
+        // Structured Test Questions Table
+        $table_name = $wpdb->prefix . 'sm_test_questions';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            test_id mediumint(9) NOT NULL,
+            question_text text NOT NULL,
+            question_type varchar(50) DEFAULT 'mcq',
+            options text,
+            correct_answer text,
+            points int DEFAULT 1,
+            time_limit int DEFAULT 0,
+            media_url text,
+            media_type varchar(20),
+            extra_data text,
+            topic varchar(100),
+            difficulty enum('easy', 'medium', 'hard') DEFAULT 'medium',
+            sort_order int DEFAULT 0,
+            PRIMARY KEY  (id),
+            KEY test_id (test_id)
+        ) $charset_collate;\n";
+
+        // Survey Responses Table
+        $table_name = $wpdb->prefix . 'sm_survey_responses';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            survey_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            responses text NOT NULL,
+            score int DEFAULT 0,
+            status varchar(50) DEFAULT 'pending',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY survey_id (survey_id),
+            KEY user_id (user_id)
+        ) $charset_collate;\n";
+
+        // Test Assignments Table
+        $table_name = $wpdb->prefix . 'sm_test_assignments';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            test_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            assigned_by bigint(20),
+            session_data text,
+            started_at datetime,
+            last_heartbeat datetime,
+            status varchar(50) DEFAULT 'assigned',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY test_id (test_id),
+            KEY user_id (user_id)
+        ) $charset_collate;\n";
+
+        // Test Action Logs Table
+        $table_name = $wpdb->prefix . 'sm_test_logs';
+        $sql .= "CREATE TABLE $table_name (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            assignment_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            action_type varchar(50) NOT NULL,
+            details text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY assignment_id (assignment_id),
+            KEY user_id (user_id)
+        ) $charset_collate;\n";
+
+        // Payments Table
+        $table_name = $wpdb->prefix . 'sm_payments';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            member_id mediumint(9) NOT NULL,
+            amount decimal(10,2) NOT NULL,
+            payment_type enum('membership', 'license', 'facility', 'other', 'penalty') NOT NULL,
+            payment_date date NOT NULL,
+            target_year int,
+            digital_invoice_code varchar(50),
+            paper_invoice_code varchar(50),
+            details_ar text,
+            notes text,
+            created_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY member_id (member_id),
+            KEY created_by (created_by)
+        ) $charset_collate;\n";
+
+        // Update Requests Table
+        $table_name = $wpdb->prefix . 'sm_update_requests';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            member_id mediumint(9) NOT NULL,
+            requested_data text NOT NULL,
+            status enum('pending', 'approved', 'rejected') DEFAULT 'pending',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            processed_at datetime,
+            processed_by bigint(20),
+            PRIMARY KEY  (id),
+            KEY member_id (member_id),
+            KEY status (status)
+        ) $charset_collate;\n";
+
+        // Digital Services Table
+        $table_name = $wpdb->prefix . 'sm_services';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            name tinytext NOT NULL,
+            category varchar(100) DEFAULT 'عام',
+            branch varchar(50) DEFAULT 'all',
+            icon varchar(50) DEFAULT 'dashicons-cloud',
+            requires_login tinyint(1) DEFAULT 1,
+            is_deleted tinyint(1) DEFAULT 0,
+            description text,
+            fees decimal(10,2) DEFAULT 0,
+            required_fields text,
+            selected_profile_fields text,
+            status enum('active', 'suspended') DEFAULT 'active',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id)
+        ) $charset_collate;\n";
+
+        // Service Requests Table
+        $table_name = $wpdb->prefix . 'sm_service_requests';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            service_id mediumint(9) NOT NULL,
+            member_id mediumint(9) NOT NULL,
+            request_data text NOT NULL,
+            fees_paid decimal(10,2) DEFAULT 0,
+            status enum('pending', 'processing', 'approved', 'rejected') DEFAULT 'pending',
+            processed_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY service_id (service_id),
+            KEY member_id (member_id),
+            KEY status (status)
+        ) $charset_collate;\n";
+
+        // Membership Requests Table
+        $table_name = $wpdb->prefix . 'sm_membership_requests';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            national_id varchar(14) NOT NULL,
+            name tinytext NOT NULL,
+            gender enum('male', 'female') DEFAULT 'male',
+            professional_grade tinytext,
+            specialization tinytext,
+            academic_degree tinytext,
+            university tinytext,
+            faculty tinytext,
+            department tinytext,
+            graduation_date date,
+            residence_street text,
+            residence_city tinytext,
+            residence_governorate tinytext,
+            governorate tinytext,
+            sub_syndicate tinytext,
+            phone tinytext,
+            email tinytext,
+            notes text,
+            payment_method varchar(50),
+            payment_reference varchar(100),
+            payment_screenshot_url text,
+            doc_qualification_url text,
+            doc_id_url text,
+            doc_military_url text,
+            doc_criminal_url text,
+            doc_photo_url text,
+            current_stage int DEFAULT 1,
+            status varchar(50) DEFAULT 'pending',
+            rejection_reason text,
+            processed_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY national_id (national_id),
+            KEY status (status)
+        ) $charset_collate;\n";
+
+        // Notification Templates Table
+        $table_name = $wpdb->prefix . 'sm_notification_templates';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            template_type varchar(50) NOT NULL,
+            subject varchar(255) NOT NULL,
+            body text NOT NULL,
+            days_before int DEFAULT 0,
+            is_enabled tinyint(1) DEFAULT 1,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            UNIQUE KEY template_type (template_type)
+        ) $charset_collate;\n";
+
+        // Notification Logs Table
+        $table_name = $wpdb->prefix . 'sm_notification_logs';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            member_id mediumint(9),
+            sender_id bigint(20) DEFAULT 0,
+            channel varchar(20) DEFAULT 'email',
+            notification_type varchar(50),
+            recipient_email varchar(100),
+            recipient_phone varchar(20),
+            subject varchar(255),
+            message_body text,
+            sent_at datetime DEFAULT CURRENT_TIMESTAMP,
+            status varchar(20),
+            PRIMARY KEY  (id),
+            KEY member_id (member_id),
+            KEY sent_at (sent_at),
+            KEY channel (channel)
+        ) $charset_collate;\n";
+
+        // Documents Table
+        $table_name = $wpdb->prefix . 'sm_documents';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            member_id mediumint(9) NOT NULL,
+            category enum('licenses', 'certificates', 'receipts', 'other') NOT NULL,
+            title varchar(255) NOT NULL,
+            file_url text NOT NULL,
+            file_type varchar(50),
+            created_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY member_id (member_id),
+            KEY category (category)
+        ) $charset_collate;\n";
+
+        // Document Logs Table
+        $table_name = $wpdb->prefix . 'sm_document_logs';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            document_id mediumint(9) NOT NULL,
+            action varchar(50) NOT NULL,
+            user_id bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY document_id (document_id)
+        ) $charset_collate;\n";
+
+        // Publishing Center Templates
+        $table_name = $wpdb->prefix . 'sm_pub_templates';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            title varchar(255) NOT NULL,
+            content longtext NOT NULL,
+            doc_type varchar(50) DEFAULT 'other',
+            settings text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id)
+        ) $charset_collate;\n";
+
+        // Publishing Center Generated Documents
+        $table_name = $wpdb->prefix . 'sm_pub_documents';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            template_id mediumint(9),
+            member_id mediumint(9) DEFAULT 0,
+            serial_number varchar(50) NOT NULL,
+            title varchar(255) NOT NULL,
+            content longtext NOT NULL,
+            created_by bigint(20),
+            download_count int DEFAULT 0,
+            last_format varchar(20),
+            options text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            UNIQUE KEY serial_number (serial_number)
+        ) $charset_collate;\n";
+
+        // Tickets Table
+        $table_name = $wpdb->prefix . 'sm_tickets';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            member_id mediumint(9) NOT NULL,
+            subject varchar(255) NOT NULL,
+            category varchar(50),
+            priority enum('low', 'medium', 'high') DEFAULT 'medium',
+            status enum('open', 'in-progress', 'closed') DEFAULT 'open',
+            province varchar(50),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY member_id (member_id),
+            KEY status (status),
+            KEY province (province)
+        ) $charset_collate;\n";
+
+        // Ticket Thread Table
+        $table_name = $wpdb->prefix . 'sm_ticket_thread';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            ticket_id mediumint(9) NOT NULL,
+            sender_id bigint(20) NOT NULL,
+            message text NOT NULL,
+            file_url text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY ticket_id (ticket_id),
+            KEY sender_id (sender_id)
+        ) $charset_collate;\n";
+
+        // Alerts Table
+        $table_name = $wpdb->prefix . 'sm_alerts';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            title varchar(255) NOT NULL,
+            message text NOT NULL,
+            severity enum('info', 'warning', 'critical') DEFAULT 'info',
+            must_acknowledge tinyint(1) DEFAULT 0,
+            status enum('active', 'inactive') DEFAULT 'active',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id)
+        ) $charset_collate;\n";
+
+        // Alert Views Table
+        $table_name = $wpdb->prefix . 'sm_alert_views';
+        $sql .= "CREATE TABLE $table_name (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            alert_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            acknowledged tinyint(1) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY alert_id (alert_id),
+            KEY user_id (user_id)
+        ) $charset_collate;\n";
+
+        // Professional Workflow Requests Table
+        $table_name = $wpdb->prefix . 'sm_professional_requests';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            member_id mediumint(9) NOT NULL,
+            request_type enum('permit_test', 'permit_renewal', 'facility_new', 'facility_renewal') NOT NULL,
+            status enum('pending', 'approved', 'rejected') DEFAULT 'pending',
+            admin_notes text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            processed_at datetime,
+            processed_by bigint(20),
+            PRIMARY KEY  (id),
+            KEY member_id (member_id),
+            KEY status (status)
+        ) $charset_collate;\n";
+
+        // Student Groups Table
+        $table_name = $wpdb->prefix . 'sm_test_groups';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            name varchar(255) NOT NULL,
+            description text,
+            branch varchar(50) DEFAULT 'all',
+            created_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id)
+        ) $charset_collate;\n";
+
+        // Group Members Table
+        $table_name = $wpdb->prefix . 'sm_test_group_members';
+        $sql .= "CREATE TABLE $table_name (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            group_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            PRIMARY KEY  (id),
+            KEY group_id (group_id),
+            KEY user_id (user_id)
+        ) $charset_collate;\n";
+
+        // Group Assignments Table
+        $table_name = $wpdb->prefix . 'sm_test_group_assignments';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            test_id mediumint(9) NOT NULL,
+            group_id mediumint(9) NOT NULL,
+            assigned_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY test_id (test_id),
+            KEY group_id (group_id)
+        ) $charset_collate;\n";
+
+        // Branches Table
+        $table_name = $wpdb->prefix . 'sm_branches_data';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            slug varchar(50) NOT NULL,
+            name varchar(255) NOT NULL,
+            phone varchar(50),
+            email varchar(100),
+            address text,
+            manager varchar(255),
+            description text,
+            bank_name varchar(100),
+            bank_branch varchar(100),
+            bank_iban varchar(50),
+            bank_local text,
+            digital_wallet varchar(20),
+            instapay_id varchar(100),
+            postal_code varchar(20),
+            logo_url text,
+            latitude varchar(50),
+            longitude varchar(50),
+            payment_methods text,
+            privacy_settings text,
+            fees longtext,
+            committees text,
+            is_active tinyint(1) DEFAULT 1,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            UNIQUE KEY slug (slug)
+        ) $charset_collate;\n";
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        dbDelta($sql);
+
+        update_option('sm_db_version', SM_VERSION);
+        update_option('sm_plugin_version', SM_VERSION);
+
+        self::fix_members_schema();
+        self::fix_branches_schema();
+        self::fix_services_schema();
+        self::fix_service_requests_schema();
+        self::fix_surveys_schema();
+        self::fix_test_questions_schema();
+        self::fix_test_monitoring_schema();
+        self::fix_alerts_schema();
+        self::fix_membership_requests_schema();
+        self::fix_notification_logs_schema();
+        self::fix_prof_requests_schema();
+        self::setup_roles();
+        self::seed_notification_templates();
+        self::seed_publishing_templates();
+        self::seed_academic_fields();
+    }
+
+    private static function seed_academic_fields() {
+        if (!get_option('sm_universities')) {
+            SM_Settings::save_universities(array(
+                'cairo' => 'جامعة القاهرة', 'alexandria' => 'جامعة الإسكندرية', 'mansoura' => 'جامعة المنصورة', 'tanta' => 'جامعة طنطا',
+                'ain_shams' => 'جامعة عين شمس', 'asyut' => 'جامعة أسيوط', 'zagazig' => 'جامعة الزقازيق', 'capital' => 'جامعة العاصمة',
+                'minya' => 'جامعة المنيا', 'menofia' => 'جامعة المنوفية', 'suez_canal' => 'جامعة قناة السويس', 'qena' => 'جامعة قنا',
+                'beni_suef' => 'جامعة بني سويف', 'fayoum' => 'جامعة الفيوم', 'banha' => 'جامعة بنها', 'kafr_el_sheikh' => 'جامعة كفر الشيخ',
+                'sohag' => 'جامعة سوهاج', 'port_said' => 'جامعة بورسعيد', 'aswan' => 'جامعة أسوان', 'damietta' => 'جامعة دمياط',
+                'damanhour' => 'جامعة دمنهور', 'suez' => 'جامعة السويس', 'sadat' => 'جامعة مدينة السادات', 'arish' => 'جامعة العريش',
+                'luxor' => 'جامعة الأقصر', 'new_valley' => 'جامعة الوادي الجديد', 'matrouh' => 'جامعة مطروح', 'hurghada' => 'جامعة الغردقة'
+            ));
+        }
+
+        if (!get_option('sm_faculties')) {
+            SM_Settings::save_faculties(array(
+                'sports_science' => 'كلية علوم الرياضة',
+                'physical_edu' => 'كلية التربية الرياضية',
+                'rehab_sports' => 'كلية علوم الرياضة والتأهيل',
+                'physical_sports' => 'كلية التربية البدنية وعلوم الرياضة',
+                'disability_rehab' => 'كلية علوم الإعاقة والتأهيل'
+            ));
+        }
+
+        if (!get_option('sm_departments')) {
+            SM_Settings::save_departments(array(
+                'health_science' => 'قسم علوم الصحة الرياضية', 'psychology' => 'قسم علم النفس الرياضي', 'health' => 'قسم الصحة الرياضية',
+                'physiology' => 'قسم فيسيولوجيا الرياضة', 'kinesiology' => 'قسم علوم الحركة الرياضية', 'nutrition' => 'قسم التغذية الرياضية',
+                'training' => 'قسم التدريب الرياضي وعلومه', 'tarweeh' => 'قسم الترويح الرياضي', 'performance' => 'قسم اللياقة البدنية وعلوم الأداء',
+                'health_bioscience' => 'قسم العلوم الحيوية والصحة الرياضية', 'curriculum' => 'قسم المناهج وطرق التدريس', 'admin' => 'قسم الإدارة الرياضية',
+                'therapy' => 'قسم العلاج الرياضي', 'injuries' => 'قسم الإصابات والتأهيل'
+            ));
+        }
+
+        if (!get_option('sm_specializations')) {
+            SM_Settings::save_specializations(array(
+                'fisiologia' => 'فيسيولوجيا الرياضة', 'tarweeh' => 'الترويح الرياضي', 'aquatic' => 'الرياضات المائية', 'team_sports' => 'الألعاب الجماعية',
+                'combat' => 'المنازلات', 'sports_injuries' => 'الإصابات الرياضية والتأهيل', 'sports_therapy' => 'العلاج الرياضي', 'sports_nutrition' => 'التغذية الرياضية',
+                'biomechanics' => 'الميكانيكا الحيوية', 'rehab_fisiologia' => 'فيسيولوجيا التأهيل', 'teaching_methods' => 'طرق تدريس التربية الرياضية', 'sports_psychology' => 'علم النفس الرياضي',
+                'measurement' => 'القياس والتقويم الرياضي', 'kinesiology' => 'علم الحركة', 'sports_health' => 'الصحة الرياضية', 'injuries_rehab' => 'الإصابات والتأهيل',
+                'physical_prep' => 'الإعداد البدني', 'sports_media' => 'الإعلام الرياضي', 'fitness' => 'اللياقة البدنية', 'sports_training_spec' => 'تدريب رياضي تخصص',
+                'gymnastics' => 'الجمباز والتعبير الحركي', 'admin_tarweeh' => 'الإدارة والترويح', 'motor_rehab' => 'الإصابات والتأهيل الحركي', 'health_science' => 'علوم الصحة الرياضية',
+                'bioscience' => 'العلوم الحيوية', 'health_bioscience' => 'العلوم الحيوية والصحة الرياضية', 'sports_training' => 'تدريب رياضي', 'motor_science' => 'علم حركة',
+                'health_fitness' => 'اللياقة البدنية والصحية', 'sports_edu' => 'التعليم الرياضي', 'physical_activity' => 'النشاط البدني'
+            ));
+        }
+    }
+
+    private static function seed_publishing_templates() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'sm_pub_templates';
+
+        $templates = [
+            'experience_cert' => [
+                'title' => 'شهادة خبرة معتمدة',
+                'doc_type' => 'certificate',
+                'content' => '<div style="text-align:center;"><p>تشهد النقابة العامة بأن السيد العضو / <strong>{MEMBER_NAME}</strong></p><p>المقيد برقم قيد: {MEMBERSHIP_NO} وفرع: {GOVERNORATE}</p><p>قد اجتاز كافة المتطلبات المهنية المقررة ويعتبر ممارساً معتمداً في تخصصه.</p></div>'
+            ],
+            'official_report' => [
+                'title' => 'تقرير فني رسمي',
+                'doc_type' => 'report',
+                'content' => '<h3>موضوع التقرير: ....................</h3><p>بناءً على المعاينة الفنية والمهنية لعضو النقابة {MEMBER_NAME}، نفيد بالآتي:</p><ul><li>أولاً: .............</li><li>ثانياً: .............</li></ul>'
+            ],
+            'internal_memo' => [
+                'title' => 'مذكرة عرض داخلية',
+                'doc_type' => 'memo',
+                'content' => '<h3>مذكرة عرض إلى: السيد مدير عام النقابة</h3><p>بشأن: .........................</p><p>بالإشارة إلى الطلب المقدم من {MEMBER_NAME}، نحيط سيادتكم علماً بـ .............</p><p style="text-align:left;">وتفضلوا بقبول فائق الاحترام،،</p>'
+            ]
+        ];
+
+        foreach ($templates as $key => $data) {
+            $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table WHERE title = %s", $data['title']));
+            if (!$exists) {
+                $wpdb->insert($table, [
+                    'title' => $data['title'],
+                    'doc_type' => $data['doc_type'],
+                    'content' => $data['content']
+                ]);
+            }
+        }
+    }
+
+    private static function fix_prof_requests_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_professional_requests';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
+
+        $wpdb->query("ALTER TABLE $table_name MODIFY request_type varchar(100) NOT NULL");
+    }
+
+    private static function fix_membership_requests_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_membership_requests';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $col = 'sub_syndicate';
+        $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+        if (empty($exists)) {
+            $wpdb->query("ALTER TABLE $table_name ADD $col tinytext AFTER governorate");
+        }
+    }
+
+    private static function fix_notification_logs_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_notification_logs';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
+
+        $cols = [
+            'sender_id' => 'bigint(20) DEFAULT 0',
+            'channel' => "varchar(20) DEFAULT 'email'",
+            'recipient_phone' => 'varchar(20)',
+            'message_body' => 'text'
+        ];
+
+        foreach ($cols as $col => $type) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $type AFTER member_id");
+            }
+        }
+    }
+
+    private static function fix_service_requests_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_service_requests';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        // Change status to support custom strings (not just enum)
+        $wpdb->query("ALTER TABLE $table_name MODIFY status varchar(100) DEFAULT 'pending'");
+
+        // Add admin_notes
+        $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'admin_notes'));
+        if (empty($exists)) {
+            $wpdb->query("ALTER TABLE $table_name ADD admin_notes text AFTER status");
+        }
+
+        $cols = [
+            'transaction_code' => 'varchar(100)',
+            'payment_receipt_url' => 'text'
+        ];
+        foreach ($cols as $col => $def) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $def AFTER fees_paid");
+            }
+        }
+    }
+
+    private static function seed_notification_templates() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'sm_notification_templates';
+        $templates = [
+            'membership_renewal' => [
+                'subject' => 'إشعار رسمي: موعد تجديد العضوية النقابية السنوية',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nتود إدارة شؤون الأعضاء بنقابة الإصابات والتأهيل إحاطتكم علماً بقرب موعد انتهاء صلاحية عضويتكم النقابية لعام {year}.\nحرصاً منا على استمرار تمتعكم بكافة الخدمات النقابية والمزايا المهنية، يرجى التكرم ببدء إجراءات التجديد وسداد الرسوم المقررة في موعد أقصاه نهاية الشهر الحالي لتجنب غرامات التأخير.\n\nيمكنكم السداد عبر المنصة الرقمية أو بالتوجه لأقرب فرع نقابي.\n\nوتفضلوا بقبول فائق الاحترام والتقدير،،",
+                'days_before' => 30
+            ],
+            'license_practice' => [
+                'subject' => 'تنبيه مهني: انتهاء صلاحية تصريح مزاولة المهنة',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nنحيط سيادتكم علماً بأن تصريح مزاولة المهنة الخاص بكم والمقيد بسجلات النقابة تنتهي صلاحيته في {expiry_date}.\nيرجى التوجه لإدارة التراخيص أو استخدام البوابة الرقمية لتقديم طلب التجديد واستيفاء المتطلبات المهنية اللازمة لضمان قانونية الممارسة المهنية.\n\nمع تمنياتنا لكم بدوام التوفيق والسداد،،",
+                'days_before' => 30
+            ],
+            'license_facility' => [
+                'subject' => 'إشعار إداري: تجديد ترخيص المنشأة المهنية',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nبالإشارة إلى السجلات الإدارية للمنشآت، نود إخطاركم بأن موعد تجديد ترخيص المنشأة ({facility_name}) يحل في {expiry_date}.\nيرجى سرعة مراجعة النقابة العامة/الفرعية لتجديد التراخيص والاعتمادات اللازمة لتجنب اتخاذ الإجراءات القانونية المترتبة على انتهاء الصلاحية.\n\nشاكرين لكم تعاونكم الدائم،،",
+                'days_before' => 30
+            ],
+            'payment_reminder' => [
+                'subject' => 'إشعار مالي: تسوية مستحقات مالية متأخرة',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nنلفت انتباه سيادتكم بوجود مبالغ مالية مستحقة على حسابكم الشخصي لدى النقابة بقيمة إجمالية {balance} ج.م.\nنرجو منكم التكرم بسرعة تسوية هذه المبالغ لضمان عدم توقف الخدمات النقابية المقدمة لكم.\n\nيمكنكم الاطلاع على تفاصيل المديونية عبر حسابكم في المنصة الرقمية.\n\nإدارة الشؤون المالية،،",
+                'days_before' => 0
+            ],
+            'welcome_activation' => [
+                'subject' => 'اعتماد: تفعيل الحساب الرسمي بالمنصة الرقمية النقابية',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nيسعدنا الترحيب بكم في المنصة الرقمية الرسمية لنقابة الإصابات والتأهيل. تم تفعيل حسابكم بنجاح وأصبح بإمكانكم الآن الاستفادة من كافة الخدمات الإلكترونية والتدريبية والمهنية.\n\nرقم عضويتكم المعتمد: {membership_number}\n\nنحن هنا لخدمتكم دائماً،،",
+                'days_before' => 0
+            ],
+            'admin_alert' => [
+                'subject' => 'تنبيه إداري رسمي عاجل',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nنحيطكم علماً بالقرار/الإجراء الإداري التالي:\n\n{alert_message}\n\nنرجو الالتزام بما ورد أعلاه والعمل بموجبه.\n\nالأمانة العامة للنقابة،،",
+                'days_before' => 0
+            ],
+            'fine_notification' => [
+                'subject' => 'إشعار قانوني: فرض غرامة إدارية نتيجة تأخير السداد',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nنحيطكم علماً بأنه قد تقرر تقييد غرامة تأخير إدارية على حسابكم بقيمة {amount} ج.م نظراً لتجاوز الموعد القانوني المحدد للسداد.\nنحثكم على سرعة تسوية الأوضاع المالية لتفادي تراكم المزيد من الغرامات أو تعليق العضوية.\n\nإدارة الشؤون القانونية والمالية،،",
+                'days_before' => 0
+            ],
+            'financial_alert' => [
+                'subject' => 'تنبيه مالي عاجل: تراكم مديونيات سنوية',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nنحيط سيادتكم علماً بوجود مديونيات متراكمة على حسابكم النقابي منذ عام {year}. إن عدم تسوية هذه المديونيات يؤثر بشكل مباشر على استمرارية التغطية التأمينية والخدمات النقابية والمهنية المكفولة لكم.\n\nيرجى سرعة السداد أو التواصل مع القسم المالي لبحث سبل التسوية.\n\nإدارة التحصيل والموارد المالية،،",
+                'days_before' => 0
+            ],
+            'event_invitation' => [
+                'subject' => 'دعوة رسمية: حضور فعالية نقابية / دورة تدريبية متخصصة',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nتتشرف النقابة العامة للإصابات والتأهيل بدعوة سيادتكم لحضور فعاليات ({event_name}) والمقرر عقدها بمشيئة الله في {event_date}.\nيسعدنا تواجدكم ومشاركتكم التي تثري العمل النقابي والمهني.\n\nيرجى تأكيد الحضور عبر الرد على هذه الرسالة أو التسجيل عبر الرابط المتاح بالمنصة.\n\nمع خالص التحية والتقدير،،",
+                'days_before' => 0
+            ],
+            'general_announcement' => [
+                'subject' => 'إعلان هام للسادة أعضاء النقابة',
+                'body' => "السيد الزميل/ {member_name}\nتحية طيبة وبعد،،\n\nتعلن النقابة العامة عن القرار/الخبر التالي:\n\n{announcement_title}\n\nلمزيد من التفاصيل والاستفسارات، يرجى مراجعة الموقع الرسمي أو التوجه لأقرب مقر نقابي.\n\nإدارة الإعلام والعلاقات العامة،،",
+                'days_before' => 0
+            ]
+        ];
+
+        foreach ($templates as $type => $data) {
+            $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table WHERE template_type = %s", $type));
+            if ($exists) {
+                $wpdb->update($table, [
+                    'subject' => $data['subject'],
+                    'body' => $data['body']
+                ], ['template_type' => $type]);
+            } else {
+                $wpdb->insert($table, [
+                    'template_type' => $type,
+                    'subject' => $data['subject'],
+                    'body' => $data['body'],
+                    'days_before' => $data['days_before'],
+                    'is_enabled' => 1
+                ]);
+            }
+        }
+    }
+
+    private static function migrate_settings() {
+        $old_info = get_option('sm_syndicate_info');
+        if ($old_info && !get_option('sm_syndicate_info')) {
+            // Rename syndicate fields to syndicate fields
+            if (isset($old_info['syndicate_name'])) {
+                $old_info['syndicate_name'] = $old_info['syndicate_name'];
+            }
+            if (isset($old_info['syndicate_logo'])) {
+                $old_info['syndicate_logo'] = $old_info['syndicate_logo'];
+            }
+            if (isset($old_info['syndicate_officer_name'])) {
+                $old_info['syndicate_officer_name'] = $old_info['syndicate_officer_name'];
+            }
+            update_option('sm_syndicate_info', $old_info);
+        }
+    }
+
+    private static function migrate_tables() {
+        global $wpdb;
+        // Migration from School version (sm_students -> sm_members)
+        $mappings = array(
+            'sm_students' => 'sm_members'
+        );
+        foreach ($mappings as $old => $new) {
+            $old_table = $wpdb->prefix . $old;
+            $new_table = $wpdb->prefix . $new;
+            if ($wpdb->get_var("SHOW TABLES LIKE '$old_table'") && !$wpdb->get_var("SHOW TABLES LIKE '$new_table'")) {
+                $wpdb->query("RENAME TABLE $old_table TO $new_table");
+            }
+        }
+
+        $members_table = $wpdb->prefix . 'sm_members';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$members_table'")) {
+            // Ensure column names are updated from legacy 'student' to 'member'
+            $column_renames = [
+                'student_code' => 'member_code'
+            ];
+            foreach ($column_renames as $old_col => $new_col) {
+                $col_exists = $wpdb->get_results("SHOW COLUMNS FROM $members_table LIKE '$old_col'");
+                if (!empty($col_exists)) {
+                    $wpdb->query("ALTER TABLE $members_table CHANGE $old_col $new_col tinytext");
+                }
+            }
+        }
+
+        // Rename old column names to new ones in all relevant tables
+        $tables_to_fix = array('sm_messages', 'sm_members');
+        foreach ($tables_to_fix as $table) {
+            $full_table = $wpdb->prefix . $table;
+            if ($wpdb->get_var("SHOW TABLES LIKE '$full_table'")) {
+                // Fix Member ID to Member ID
+                $col_member = $wpdb->get_results("SHOW COLUMNS FROM $full_table LIKE 'member_id'");
+                if (!empty($col_member)) {
+                    $wpdb->query("ALTER TABLE $full_table CHANGE member_id member_id mediumint(9)");
+                }
+
+                // Fix Officer ID / Syndicate Member ID to Officer ID
+                $col_officer = $wpdb->get_results("SHOW COLUMNS FROM $full_table LIKE 'officer_id'");
+                if (!empty($col_officer)) {
+                    $wpdb->query("ALTER TABLE $full_table CHANGE officer_id officer_id bigint(20)");
+                }
+
+                $col_syndicate_member = $wpdb->get_results("SHOW COLUMNS FROM $full_table LIKE 'syndicate_member_id'");
+                if (!empty($col_syndicate_member)) {
+                    $wpdb->query("ALTER TABLE $full_table CHANGE syndicate_member_id officer_id bigint(20)");
+                }
+            }
+        }
+    }
+
+    private static function setup_roles() {
+        // Clear old custom roles first to ensure a clean slate
+        $old_roles = ['sm_system_admin', 'sm_syndicate_admin', 'sm_syndicate_member', 'sm_officer', 'sm_member', 'sm_parent', 'sm_student'];
+        foreach ($old_roles as $old_role) {
+            if (get_role($old_role)) {
+                remove_role($old_role);
+            }
+        }
+
+        // Capability Definitions
+        $all_caps = array(
+            'read' => true,
+            'sm_manage_system' => true,  // Advanced settings, resets, etc.
+            'sm_manage_users' => true,   // System staff management
+            'sm_manage_members' => true, // View/Edit members
+            'sm_manage_finance' => true, // Financial operations
+            'sm_manage_licenses' => true,
+            'sm_print_reports' => true,
+            'sm_full_access' => true,    // Global view (across all branches)
+            'sm_branch_access' => true,  // Restricted to assigned branch
+            'sm_manage_archive' => true
+        );
+
+        // 1. System Administrator (Inherits administrator + all plugin caps)
+        $admin_role = get_role('administrator');
+        if ($admin_role) {
+            foreach ($all_caps as $cap => $grant) {
+                $admin_role->add_cap($cap, $grant);
+            }
+        }
+
+        // 2. General Syndicate Officer (مسؤول النقابة العامة)
+        // Full access to plugin sections, Global view
+        $general_officer_caps = array(
+            'read' => true,
+            'sm_manage_members' => true,
+            'sm_manage_finance' => true,
+            'sm_manage_licenses' => true,
+            'sm_print_reports' => true,
+            'sm_full_access' => true,
+            'sm_manage_archive' => true,
+            'sm_manage_users' => true,
+            'sm_manage_system' => true
+        );
+        add_role('sm_general_officer', 'مسؤول النقابة العامة', $general_officer_caps);
+
+        // 3. Branch Syndicate Officer (مسؤول نقابة)
+        // Access restricted to their branch ONLY
+        $branch_officer_caps = array(
+            'read' => true,
+            'sm_manage_members' => true,
+            'sm_manage_finance' => true,
+            'sm_manage_licenses' => true,
+            'sm_print_reports' => true,
+            'sm_branch_access' => true,
+            'sm_manage_archive' => true
+        );
+        add_role('sm_branch_officer', 'مسؤول نقابة', $branch_officer_caps);
+
+        // 4. Syndicate Member (عضو النقابة)
+        // Personal data only
+        add_role('sm_member', 'عضو النقابة', array('read' => true));
+
+        self::migrate_user_roles();
+        self::sync_missing_member_accounts();
+        self::create_pages();
+    }
+
+    private static function create_pages() {
+        global $wpdb;
+        $pages = array(
+            'sm-login' => array(
+                'title' => 'تسجيل الدخول للنظام',
+                'content' => '[sm_login]'
+            ),
+            'dashboard' => array(
+                'title' => 'لوحة التحكم',
+                'content' => '[sm_admin]'
+            ),
+            'my-account' => array(
+                'title' => 'حسابي',
+                'content' => '[sm_admin]'
+            ),
+            'services' => array(
+                'title' => 'الخدمات الرقمية',
+                'content' => '[services]',
+                'shortcode' => 'services'
+            ),
+            'branches' => array(
+                'title' => 'الفروع واللجان',
+                'content' => '[sm_branches]',
+                'shortcode' => 'sm_branches'
+            ),
+            'practice-test' => array(
+                'title' => 'الاختبارات المهنية',
+                'content' => '[test]'
+            )
+        );
+
+        foreach ($pages as $slug => $data) {
+            $existing = get_page_by_path($slug);
+            if (!$existing) {
+                wp_insert_post(array(
+                    'post_title'    => $data['title'],
+                    'post_content'  => $data['content'],
+                    'post_status'   => 'publish',
+                    'post_type'     => 'page',
+                    'post_name'     => $slug
+                ));
+            }
+        }
+    }
+
+    private static function sync_missing_member_accounts() {
+        global $wpdb;
+        $members = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}sm_members WHERE wp_user_id IS NULL OR wp_user_id = 0");
+        foreach ($members as $m) {
+            $digits = '';
+            for ($i = 0; $i < 10; $i++) {
+                $digits .= mt_rand(0, 9);
+            }
+            $user_id = wp_insert_user([
+                'user_login' => $m->national_id,
+                'user_email' => $m->email ?: $m->national_id . '@irseg.org',
+                'display_name' => $m->name,
+                'user_pass' => null,
+                'role' => 'sm_member'
+            ]);
+            if (!is_wp_error($user_id)) {
+                if (!empty($m->governorate)) {
+                    update_user_meta($user_id, 'sm_governorate', $m->governorate);
+                }
+                $wpdb->update("{$wpdb->prefix}sm_members", ['wp_user_id' => $user_id], ['id' => $m->id]);
+            }
+        }
+    }
+
+    private static function fix_members_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_members';
+
+        $birth_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'province_of_birth'));
+        if (empty($birth_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD province_of_birth tinytext AFTER governorate");
+        }
+
+        $deleted_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'is_deleted'));
+        if (empty($deleted_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD is_deleted tinyint(1) DEFAULT 0 AFTER sort_order");
+        }
+    }
+
+    private static function fix_branches_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_branches_data';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
+
+        $cols = [
+            'bank_name' => 'varchar(100)',
+            'bank_branch' => 'varchar(100)',
+            'bank_iban' => 'varchar(50)',
+            'bank_local' => 'text',
+            'digital_wallet' => 'varchar(20)',
+            'instapay_id' => 'varchar(100)',
+            'postal_code' => 'varchar(20)',
+            'logo_url' => 'text',
+            'latitude' => 'varchar(50)',
+            'longitude' => 'varchar(50)',
+            'payment_methods' => 'text',
+            'privacy_settings' => 'text',
+            'fees' => 'longtext',
+            'committees' => 'text',
+            'is_active' => 'tinyint(1) DEFAULT 1'
+        ];
+
+        foreach ($cols as $col => $type) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $type AFTER description");
+            }
+        }
+    }
+
+    private static function fix_services_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_services';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $cat_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'category'));
+        if (empty($cat_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD category varchar(100) DEFAULT 'عام' AFTER name");
+        }
+
+        $login_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'requires_login'));
+        if (empty($login_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD requires_login tinyint(1) DEFAULT 1 AFTER category");
+        }
+
+        $icon_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'icon'));
+        if (empty($icon_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD icon varchar(50) DEFAULT 'dashicons-cloud' AFTER category");
+        }
+
+        $deleted_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'is_deleted'));
+        if (empty($deleted_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD is_deleted tinyint(1) DEFAULT 0 AFTER requires_login");
+        }
+
+        $branch_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'branch'));
+        if (empty($branch_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD branch varchar(50) DEFAULT 'all' AFTER category");
+        }
+    }
+
+    private static function fix_test_questions_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_test_questions';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $cols = [
+            'time_limit' => "int DEFAULT 0 AFTER points",
+            'media_url' => "text AFTER time_limit",
+            'media_type' => "varchar(20) AFTER media_url",
+            'extra_data' => "text AFTER media_type"
+        ];
+
+        foreach ($cols as $col => $def) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $def");
+            }
+        }
+
+        // Also ensure question_type can handle new types
+        $wpdb->query("ALTER TABLE $table_name MODIFY question_type varchar(50) DEFAULT 'mcq'");
+    }
+
+    private static function fix_surveys_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_surveys';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $cols = [
+            'specialty' => "varchar(100) DEFAULT '' AFTER recipients",
+            'test_type' => "varchar(100) DEFAULT 'practice' AFTER specialty",
+            'time_limit' => "int DEFAULT 30 AFTER test_type",
+            'max_attempts' => "int DEFAULT 1 AFTER time_limit",
+            'pass_score' => "int DEFAULT 50 AFTER max_attempts",
+            'branch' => "varchar(50) DEFAULT 'all' AFTER pass_score",
+            'start_time' => "datetime DEFAULT NULL AFTER branch",
+            'end_time' => "datetime DEFAULT NULL AFTER start_time",
+            'show_results' => "tinyint(1) DEFAULT 1 AFTER end_time",
+            'random_order' => "tinyint(1) DEFAULT 0 AFTER show_results",
+            'randomize_answers' => "tinyint(1) DEFAULT 0 AFTER random_order",
+            'lock_navigation' => "tinyint(1) DEFAULT 0 AFTER randomize_answers",
+            'auto_grade' => "tinyint(1) DEFAULT 1 AFTER lock_navigation"
+        ];
+
+        foreach ($cols as $col => $def) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $def");
+            }
+        }
+    }
+
+    private static function fix_test_monitoring_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_test_assignments';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
+
+        $cols = [
+            'session_data' => 'text',
+            'started_at' => 'datetime',
+            'last_heartbeat' => 'datetime'
+        ];
+
+        foreach ($cols as $col => $type) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $type AFTER assigned_by");
+            }
+        }
+    }
+
+    private static function fix_alerts_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_alerts';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $cols = [
+            'target_roles' => 'text',
+            'target_ranks' => 'text',
+            'target_users' => 'text'
+        ];
+
+        foreach ($cols as $col => $type) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $type AFTER status");
+            }
+        }
+    }
+
+    private static function migrate_user_roles() {
+        $role_migration = array(
+            'sm_system_admin'       => 'sm_general_officer',
+            'sm_officer'            => 'sm_branch_officer',
+            'sm_syndicate_admin'    => 'sm_branch_officer',
+            'sm_syndicate_member'   => 'sm_member',
+            'sm_member'             => 'sm_member',
+            'sm_parent'             => 'sm_member',
+            'sm_principal'          => 'sm_general_officer',
+            'school_admin'          => 'sm_general_officer',
+            'sm_school_admin'       => 'sm_general_officer',
+            'sm_student'            => 'sm_member'
+        );
+
+        foreach ($role_migration as $old => $new) {
+            $users = get_users(array('role' => $old));
+            if (!empty($users)) {
+                foreach ($users as $user) {
+                    $user->add_role($new);
+                    $user->remove_role($old);
+                }
+            }
+        }
+    }
+}
