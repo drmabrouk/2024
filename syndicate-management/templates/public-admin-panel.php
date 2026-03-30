@@ -2150,14 +2150,15 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                                         <div id="sm-cover-images-list" style="display:grid; gap:10px;">
                                             <?php
                                             $imgs = $cover['images'] ?: [''];
-                                            foreach($imgs as $img): ?>
+                                            foreach($imgs as $idx => $img): ?>
                                                 <div style="display:flex; gap:10px;">
-                                                    <input type="text" name="cover_images[]" value="<?php echo esc_attr($img); ?>" class="sm-input" placeholder="رابط الصورة المباشر">
+                                                    <input type="text" name="cover_images[]" id="sm-cover-img-<?php echo $idx; ?>" value="<?php echo esc_attr($img); ?>" class="sm-input" placeholder="رابط الصورة المباشر">
+                                                    <button type="button" onclick="smOpenMediaUploader('sm-cover-img-<?php echo $idx; ?>')" class="sm-btn" style="width:auto; font-size:11px; background:#4a5568; padding:0 15px;">رفع</button>
                                                     <button type="button" class="sm-btn sm-btn-outline" style="width:auto; padding:0 15px;" onclick="this.parentElement.remove()">حذف</button>
                                                 </div>
                                             <?php endforeach; ?>
                                         </div>
-                                        <button type="button" class="sm-btn" style="width:auto; margin-top:10px; background:#4a5568;" onclick="smAddCoverImageField()">+ إضافة صورة أخرى</button>
+                                        <button type="button" class="sm-btn" style="width:auto; margin-top:10px; background:var(--sm-primary-color);" onclick="smAddCoverImageField()">+ إضافة صورة أخرى</button>
                                     </div>
 
                                     <div style="margin-top:30px; text-align:center;">
@@ -2167,11 +2168,17 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                             </form>
                             <script>
                             function smAddCoverImageField() {
+                                const container = document.getElementById('sm-cover-images-list');
+                                const idx = container.children.length;
                                 const div = document.createElement('div');
                                 div.style.display = 'flex';
                                 div.style.gap = '10px';
-                                div.innerHTML = '<input type="text" name="cover_images[]" class="sm-input" placeholder="رابط الصورة المباشر"><button type="button" class="sm-btn sm-btn-outline" style="width:auto; padding:0 15px;" onclick="this.parentElement.remove()">حذف</button>';
-                                document.getElementById('sm-cover-images-list').appendChild(div);
+                                div.innerHTML = `
+                                    <input type="text" name="cover_images[]" id="sm-cover-img-${idx}" class="sm-input" placeholder="رابط الصورة المباشر">
+                                    <button type="button" onclick="smOpenMediaUploader('sm-cover-img-${idx}')" class="sm-btn" style="width:auto; font-size:11px; background:#4a5568; padding:0 15px;">رفع</button>
+                                    <button type="button" class="sm-btn sm-btn-outline" style="width:auto; padding:0 15px;" onclick="this.parentElement.remove()">حذف</button>
+                                `;
+                                container.appendChild(div);
                             }
                             </script>
                         </div>

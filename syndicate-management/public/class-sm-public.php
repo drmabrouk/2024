@@ -518,13 +518,12 @@ class SM_Public {
 
     public function shortcode_cover_box() {
         $settings = SM_Settings::get_cover_settings();
-        $appearance = SM_Settings::get_appearance();
         $images = $settings['images'] ?: [SM_PLUGIN_URL . 'assets/images/default-cover.jpg'];
         $is_slider = count($images) > 1;
 
         ob_start();
         ?>
-        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:450px; border-radius:30px; overflow:hidden; margin-bottom:40px; box-shadow:0 15px 35px -5px <?php echo $appearance['primary_color']; ?>40;">
+        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:200px; border-radius:15px; overflow:hidden; margin:0; box-shadow:none;">
             <div class="sm-cover-slider" style="width:100%; height:100%; position:relative;">
                 <?php foreach($images as $idx => $img): ?>
                     <div class="sm-cover-slide <?php echo $idx === 0 ? 'active' : ''; ?>" style="position:absolute; top:0; left:0; width:100%; height:100%; background:url('<?php echo esc_url($img); ?>') center/cover no-repeat; opacity:<?php echo $idx === 0 ? '1' : '0'; ?>; transition: opacity 1s ease-in-out;">
@@ -533,13 +532,27 @@ class SM_Public {
                 <?php endforeach; ?>
             </div>
 
-            <div class="sm-cover-content" style="position:absolute; bottom:60px; right:60px; z-index:10; color:#fff; max-width:600px;">
-                <h1 style="font-size:3em; font-weight:900; margin:0 0 30px 0; line-height:1.2; text-shadow:0 2px 10px rgba(0,0,0,0.5);"><?php echo esc_html($settings['welcome_msg']); ?></h1>
-                <div style="display:flex; gap:20px;">
-                    <a href="<?php echo is_user_logged_in() ? home_url('/dashboard') : home_url('/sm-login'); ?>" class="sm-btn" style="height:55px; padding:0 40px; font-weight:800; border-radius:15px; font-size:1.1em; display:flex; align-items:center; background:#fff; color:var(--sm-primary-color) !important; box-shadow:0 10px 20px rgba(0,0,0,0.1);"><?php echo esc_html($settings['login_btn_label']); ?></a>
-                    <a href="<?php echo home_url('/services'); ?>" class="sm-btn sm-btn-outline" style="height:55px; padding:0 40px; font-weight:800; border-radius:15px; font-size:1.1em; display:flex; align-items:center; border:2px solid #fff; color:#fff !important; background:rgba(255,255,255,0.1); backdrop-filter:blur(10px);"><?php echo esc_html($settings['services_btn_label']); ?></a>
+            <div class="sm-cover-content" style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding:0 30px; z-index:10; color:#fff;">
+                <h1 class="sm-cover-title" style="font-size:1.4em; font-weight:800; margin:0 0 15px 0; color:#fff; text-shadow:none;"><?php echo esc_html($settings['welcome_msg']); ?></h1>
+                <div style="display:flex; gap:10px;">
+                    <a href="<?php echo is_user_logged_in() ? home_url('/dashboard') : home_url('/sm-login'); ?>" class="sm-btn-cover" style="height:36px; padding:0 20px; font-weight:700; border-radius:8px; font-size:13px; display:flex; align-items:center; background:#fff; color:var(--sm-primary-color) !important; text-decoration:none !important; border:none; box-shadow:none;">
+                        <?php echo esc_html($settings['login_btn_label']); ?>
+                    </a>
+                    <a href="<?php echo home_url('/services'); ?>" class="sm-btn-cover" style="height:36px; padding:0 20px; font-weight:700; border-radius:8px; font-size:13px; display:flex; align-items:center; border:1px solid #fff; color:#fff !important; background:rgba(255,255,255,0.15); text-decoration:none !important; backdrop-filter:blur(5px); box-shadow:none;">
+                        <?php echo esc_html($settings['services_btn_label']); ?>
+                    </a>
                 </div>
             </div>
+
+            <style>
+                .sm-btn-cover:hover { opacity: 0.9; }
+                @media (max-width: 768px) {
+                    .sm-cover-box { height: 160px !important; border-radius: 10px !important; }
+                    .sm-cover-content { padding: 0 20px !important; align-items: center !important; text-align: center !important; }
+                    .sm-cover-title { font-size: 1.1em !important; margin-bottom: 12px !important; }
+                    .sm-btn-cover { height: 32px !important; padding: 0 15px !important; font-size: 12px !important; }
+                }
+            </style>
 
             <?php if($is_slider): ?>
             <script>
