@@ -467,7 +467,9 @@ class SM_DB_Members {
             SM_Logger::log('أرشفة عضو (حذف مؤقت)', "قام $role_label ({$user->display_name}) بنقل العضو {$member->name} إلى سلة المحذوفات.");
 
             // Soft delete
-            return $wpdb->update($table_name, ['is_deleted' => 1], ['id' => $id]);
+            $res = $wpdb->update($table_name, ['is_deleted' => 1], ['id' => $id]);
+            SM_Finance::invalidate_financial_caches($member->governorate);
+            return $res;
         }
 
         return false;
@@ -488,8 +490,9 @@ class SM_DB_Members {
                 }
                 wp_delete_user($member->wp_user_id);
             }
+            $res = $wpdb->delete($table_name, array('id' => $id));
             SM_Finance::invalidate_financial_caches($member->governorate ?? null);
-            return $wpdb->delete($table_name, array('id' => $id));
+            return $res;
         }
 
         return false;
@@ -503,7 +506,9 @@ class SM_DB_Members {
         if ($member) {
             $user = wp_get_current_user();
             SM_Logger::log('استعادة عضو', "تمت استعادة العضو {$member->name} من سلة المحذوفات بواسطة {$user->display_name}.");
-            return $wpdb->update($table_name, ['is_deleted' => 0], ['id' => $id]);
+            $res = $wpdb->update($table_name, ['is_deleted' => 0], ['id' => $id]);
+            SM_Finance::invalidate_financial_caches($member->governorate);
+            return $res;
         }
 
         return false;
@@ -742,25 +747,31 @@ class SM_DB_Members {
 
     public static function soft_delete_facility($id) {
         global $wpdb;
-        return $wpdb->update(
+        $res = $wpdb->update(
             $wpdb->prefix . 'sm_members',
             ['facility_is_deleted' => 1, 'facility_deleted_at' => current_time('mysql')],
             ['id' => $id]
         );
+        $m = self::get_member_by_id($id);
+        SM_Finance::invalidate_financial_caches($m ? $m->governorate : null);
+        return $res;
     }
 
     public static function restore_facility($id) {
         global $wpdb;
-        return $wpdb->update(
+        $res = $wpdb->update(
             $wpdb->prefix . 'sm_members',
             ['facility_is_deleted' => 0, 'facility_deleted_at' => null],
             ['id' => $id]
         );
+        $m = self::get_member_by_id($id);
+        SM_Finance::invalidate_financial_caches($m ? $m->governorate : null);
+        return $res;
     }
 
     public static function permanent_delete_facility($id) {
         global $wpdb;
-        return $wpdb->update(
+        $res = $wpdb->update(
             $wpdb->prefix . 'sm_members',
             [
                 'facility_number' => null,
@@ -774,29 +785,38 @@ class SM_DB_Members {
             ],
             ['id' => $id]
         );
+        $m = self::get_member_by_id($id);
+        SM_Finance::invalidate_financial_caches($m ? $m->governorate : null);
+        return $res;
     }
 
     public static function soft_delete_license($id) {
         global $wpdb;
-        return $wpdb->update(
+        $res = $wpdb->update(
             $wpdb->prefix . 'sm_members',
             ['license_is_deleted' => 1, 'license_deleted_at' => current_time('mysql')],
             ['id' => $id]
         );
+        $m = self::get_member_by_id($id);
+        SM_Finance::invalidate_financial_caches($m ? $m->governorate : null);
+        return $res;
     }
 
     public static function restore_license($id) {
         global $wpdb;
-        return $wpdb->update(
+        $res = $wpdb->update(
             $wpdb->prefix . 'sm_members',
             ['license_is_deleted' => 0, 'license_deleted_at' => null],
             ['id' => $id]
         );
+        $m = self::get_member_by_id($id);
+        SM_Finance::invalidate_financial_caches($m ? $m->governorate : null);
+        return $res;
     }
 
     public static function permanent_delete_license($id) {
         global $wpdb;
-        return $wpdb->update(
+        $res = $wpdb->update(
             $wpdb->prefix . 'sm_members',
             [
                 'license_number' => null,
@@ -807,6 +827,9 @@ class SM_DB_Members {
             ],
             ['id' => $id]
         );
+        $m = self::get_member_by_id($id);
+        SM_Finance::invalidate_financial_caches($m ? $m->governorate : null);
+        return $res;
     }
 
     public static function cleanup_deleted_licenses_and_facilities() {
