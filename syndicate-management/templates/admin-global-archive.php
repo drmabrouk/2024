@@ -9,7 +9,7 @@ $active_sub_tab = $_GET['sub_tab'] ?? 'documents';
 
 <div class="sm-global-archive" dir="rtl">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="margin:0; font-weight: 800; color: var(--sm-dark-color);">الأرشيف الرقمي الشامل</h2>
+        <h2 style="margin:0; font-weight: 800; color: var(--sm-dark-color);">قسم الأرشيف الرقمي</h2>
         <div style="display: flex; gap: 10px;">
             <button onclick="location.reload()" class="sm-btn sm-btn-outline" style="width:auto;"><span class="dashicons dashicons-update"></span> تحديث الأرشيف</button>
         </div>

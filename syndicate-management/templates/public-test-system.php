@@ -35,7 +35,7 @@ $survey_nonce = wp_create_nonce('sm_survey_action');
                 <span class="dashicons dashicons-welcome-learn-more" style="font-size:35px; width:35px; height:35px; color:var(--sm-primary-color);"></span>
             </div>
             <h2 style="font-weight:900; margin:0;"><?php echo esc_html($assign->title); ?></h2>
-            <div style="font-size:13px; color:#64748b; margin-top:5px;">بوابة الاختبارات المهنية المعتمدة</div>
+            <div style="font-size:13px; color:#64748b; margin-top:5px;">بوابة امتحانات تراخيص المزاولة</div>
         </div>
 
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:15px; padding:20px; margin-bottom:25px;">

@@ -101,7 +101,7 @@ class SM_Print_Manager {
                     break;
 
                 case 'practice_licenses':
-                    $title = 'سجل تراخيص مزاولة المهنة';
+                    $title = 'سجل تصاريح تراخيص المزاولة';
                     $args = ['limit' => -1, 'only_with_license' => true];
                     if (!$all_records && !empty($ids)) $args['include'] = $ids;
                     if (!$is_admin && $my_gov) $args['governorate'] = $my_gov;
@@ -155,7 +155,7 @@ class SM_Print_Manager {
                     break;
 
                 case 'services':
-                    $title = 'قائمة الخدمات الرقمية';
+                    $title = 'إدارة الخدمات الرقمية';
                     $results = SM_DB::get_services(['is_deleted' => 0]);
                     if (!empty($results)) {
                         foreach ($results as $row) {
@@ -178,14 +178,14 @@ class SM_Print_Manager {
                     break;
 
                 case 'surveys':
-                    $title = 'سجل الاختبارات المهنية';
+                    $title = 'سجل امتحانات تراخيص المزاولة';
                     $results = SM_DB::get_surveys_admin();
                     if (!empty($results)) {
                         foreach ($results as $row) {
                             $item = [];
                             foreach ($fields as $f) {
                                 switch ($f) {
-                                    case 'title': $item['الاختبار'] = $row->title; break;
+                                    case 'title': $item['الامتحان'] = $row->title; break;
                                     case 'test_type':
                                         $types = ['practice' => 'مزاولة', 'promotion' => 'ترقية', 'training' => 'دورة'];
                                         $item['النوع'] = $types[$row->test_type] ?? $row->test_type;
@@ -204,7 +204,7 @@ class SM_Print_Manager {
                     break;
 
                 case 'branches':
-                    $title = 'كشف فروع ولجان النقابة';
+                    $title = 'كشف قسم فروع النقابة';
                     $results = SM_DB::get_branches_data();
                     if (!empty($results)) {
                         foreach ($results as $row) {
