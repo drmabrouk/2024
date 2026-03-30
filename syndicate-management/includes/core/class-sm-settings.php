@@ -445,6 +445,7 @@ class SM_Settings {
         $default = array(
             'images' => array(), // List of image URLs
             'welcome_msg' => 'أهلاً بك في البوابة الرقمية للنقابة',
+            'welcome_sub_msg' => '', // Smaller paragraph below the welcome message
             'login_btn_label' => 'تسجيل الدخول',
             'services_btn_label' => 'الخدمات الإلكترونية',
             'filter_intensity' => '0', // Blur or dark filter? User said "filter intensity"
