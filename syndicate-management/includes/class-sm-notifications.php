@@ -13,6 +13,7 @@ class SM_Notifications {
         if (!current_user_can('sm_manage_system') && !current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
         }
+        check_ajax_referer('sm_admin_action', 'nonce');
         $type = sanitize_text_field($_REQUEST['type'] ?? ($_REQUEST['template_type'] ?? ''));
         $template = self::get_template($type);
         if ($template) {
