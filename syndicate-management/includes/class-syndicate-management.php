@@ -74,7 +74,7 @@ class Syndicate_Management {
             'sm_delete_member_ajax' => ['SM_Member_Manager', 'ajax_delete_member'],
             'sm_permanent_delete_member_ajax' => ['SM_Member_Manager', 'ajax_permanent_delete_member'],
             'sm_restore_member_ajax' => ['SM_Member_Manager', 'ajax_restore_member'],
-            'sm_import_members_csv' => ['SM_Member_Manager', 'ajax_import_members_csv'],
+            'sm_import_members_json' => ['SM_Member_Manager', 'ajax_import_members_json'],
             'sm_import_staffs_csv' => ['SM_Member_Manager', 'ajax_import_staffs_csv'],
             'sm_update_member_account_ajax' => ['SM_Member_Manager', 'ajax_update_member_account'],
             'sm_process_membership_request' => ['SM_Member_Manager', 'ajax_process_membership_request'],

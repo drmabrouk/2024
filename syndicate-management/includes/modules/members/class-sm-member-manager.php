@@ -181,55 +181,133 @@ class SM_Member_Manager {
         exit;
     }
 
-    public static function ajax_import_members_csv() {
-        self::check_capability('sm_manage_members');
-        check_ajax_referer('sm_admin_action', 'sm_admin_nonce');
+    public static function ajax_import_members_json() {
+        try {
+            self::check_capability('sm_manage_members');
+            check_ajax_referer('sm_admin_action', 'nonce');
 
-        if (empty($_FILES['member_csv_file']['tmp_name'])) {
-            wp_send_json_error(['message' => 'لم يتم رفع أي ملف.']);
-        }
+            $data_json = $_POST['members_data'] ?? '';
+            $rows = json_decode(stripslashes($data_json), true);
 
-        require_once(ABSPATH . 'wp-admin/includes/user.php');
-        require_once(ABSPATH . 'wp-admin/includes/file.php');
-
-        $file = $_FILES['member_csv_file']['tmp_name'];
-        $handle = fopen($file, 'r');
-        if (!$handle) {
-            wp_send_json_error(['message' => 'فشل في فتح الملف.']);
-        }
-
-        $results = ['total' => 0, 'success' => 0, 'error' => 0, 'warning' => 0];
-        $header = fgetcsv($handle); // Skip header
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (empty($row[0]) || empty($row[1])) {
-                $results['warning']++;
-                continue;
+            if (empty($rows) || !is_array($rows)) {
+                wp_send_json_error(['message' => 'لا توجد بيانات صالحة للمعالجة.']);
             }
 
-            $results['total']++;
-            $data = [
-                'national_id' => sanitize_text_field($row[0]),
-                'name' => sanitize_text_field($row[1]),
-                'professional_grade' => sanitize_text_field($row[2] ?? ''),
-                'specialization' => sanitize_text_field($row[3] ?? ''),
-                'governorate' => sanitize_text_field($row[4] ?? ''),
-                'phone' => sanitize_text_field($row[5] ?? ''),
-                'email' => sanitize_email($row[6] ?? '')
-            ];
+            $results = ['total' => 0, 'success' => 0, 'updated' => 0, 'error' => 0];
 
-            $res = SM_DB::add_member($data);
-            if (!is_wp_error($res) && $res) {
-                $results['success']++;
-            } else {
-                $results['error']++;
+            // Pre-load mappings
+            $govs = array_flip(SM_Settings::get_governorates());
+            $grades = array_flip(SM_Settings::get_professional_grades());
+            $degrees = array_flip(SM_Settings::get_academic_degrees());
+            $specs = array_flip(SM_Settings::get_specializations());
+            $depts = array_flip(SM_Settings::get_departments());
+            $site_domain = parse_url(home_url(), PHP_URL_HOST);
+
+            $current_user_id = get_current_user_id();
+            $is_admin = current_user_can('sm_full_access') || current_user_can('manage_options');
+            $my_gov = get_user_meta($current_user_id, 'sm_governorate', true);
+
+            foreach ($rows as $row) {
+                $results['total']++;
+                $nid = sanitize_text_field($row['C'] ?? '');
+                if (empty($nid)) { $results['error']++; continue; }
+
+                $gov_val = self::map_label_to_key($row['D'] ?? '', $govs);
+                // Requirement 8: Branch Officer context
+                if (empty($gov_val) && !$is_admin && $my_gov) {
+                    $gov_val = $my_gov;
+                }
+
+                $member_data = [
+                    'name' => sanitize_text_field($row['A'] ?? ''),
+                    'member_code' => sanitize_text_field($row['B'] ?? ''),
+                    'national_id' => $nid,
+                    'governorate' => $gov_val,
+                    'academic_degree' => self::map_label_to_key($row['E'] ?? '', $degrees),
+                    'department' => self::map_label_to_key($row['F'] ?? '', $depts),
+                    'graduation_date' => self::format_excel_date($row['G'] ?? ''),
+                    'membership_number' => sanitize_text_field($row['H'] ?? ''),
+                    'membership_start_date' => self::format_excel_date($row['I'] ?? ''),
+                    'professional_grade' => self::map_label_to_key($row['K'] ?? '', $grades),
+                    'specialization' => self::map_label_to_key($row['L'] ?? '', $specs),
+                    'license_number' => sanitize_text_field($row['M'] ?? ''),
+                    'license_issue_date' => self::format_excel_date($row['N'] ?? ''),
+                    'facility_name' => sanitize_text_field($row['P'] ?? ''),
+                    'facility_number' => sanitize_text_field($row['Q'] ?? ''),
+                    'facility_category' => sanitize_text_field($row['R'] ?? 'C'),
+                    'facility_license_issue_date' => self::format_excel_date($row['S'] ?? ''),
+                    'email' => !empty($row['U']) ? sanitize_email($row['U']) : "{$nid}@{$site_domain}",
+                    'phone' => sanitize_text_field($row['V'] ?? ''),
+                    'residence_governorate' => self::map_label_to_key($row['W'] ?? '', $govs),
+                    'residence_city' => sanitize_text_field($row['X'] ?? ''),
+                    'residence_street' => sanitize_text_field($row['Y'] ?? ''),
+                    'notes' => sanitize_textarea_field($row['Z'] ?? '')
+                ];
+
+                // Auto-calculate expiration dates (+1 year)
+                if ($member_data['membership_start_date']) {
+                    $member_data['membership_expiration_date'] = date('Y-m-d', strtotime($member_data['membership_start_date'] . ' +1 year'));
+                }
+                if ($member_data['license_issue_date']) {
+                    $member_data['license_expiration_date'] = date('Y-m-d', strtotime($member_data['license_issue_date'] . ' +1 year'));
+                }
+                if ($member_data['facility_license_issue_date']) {
+                    $member_data['facility_license_expiration_date'] = date('Y-m-d', strtotime($member_data['facility_license_issue_date'] . ' +1 year'));
+                }
+
+                // MERGE LOGIC
+                $existing = SM_DB::get_member_by_national_id($nid);
+                if ($existing) {
+                    SM_DB::update_member($existing->id, $member_data);
+                    $mid = $existing->id;
+                    $results['updated']++;
+                } else {
+                    // NEW MEMBER RULES: Username & Password = National ID
+                    $mid = SM_DB::add_member($member_data);
+                    if (!is_wp_error($mid)) {
+                        $results['success']++;
+                        $u = get_user_by('login', $nid);
+                        if ($u) {
+                            wp_set_password($nid, $u->ID);
+                        }
+                    } else {
+                        $results['error']++;
+                        continue;
+                    }
+                }
+
+                // Handle Dues info in notes (Debt tracking)
+                $dues_info = [];
+                if (!empty($row['J']) && floatval($row['J']) > 0) $dues_info[] = "مديونية عضوية: " . floatval($row['J']);
+                if (!empty($row['O']) && floatval($row['O']) > 0) $dues_info[] = "مديونية ترخيص: " . floatval($row['O']);
+                if (!empty($row['T']) && floatval($row['T']) > 0) $dues_info[] = "مديونية منشأة: " . floatval($row['T']);
+
+                if (!empty($dues_info)) {
+                    $current_notes = $member_data['notes'];
+                    $debt_note = "\n[بيانات مديونية مستوردة]: " . implode(' | ', $dues_info);
+                    SM_DB::update_member($mid, ['notes' => $current_notes . $debt_note]);
+                }
             }
-        }
-        fclose($handle);
 
-        set_transient('sm_import_results_' . get_current_user_id(), $results, HOUR_IN_SECONDS);
-        wp_redirect(add_query_arg(['sm_tab' => 'members', 'import_complete' => 1], wp_get_referer()));
-        exit;
+            wp_send_json_success($results);
+        } catch (Throwable $e) {
+            wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+
+    private static function map_label_to_key($label, $mapping) {
+        $label = trim($label);
+        if (empty($label)) return '';
+        return $mapping[$label] ?? $label;
+    }
+
+    private static function format_excel_date($val) {
+        if (empty($val)) return null;
+        if (is_numeric($val)) {
+            return date('Y-m-d', ($val - 25569) * 86400);
+        }
+        $ts = strtotime($val);
+        return $ts ? date('Y-m-d', $ts) : null;
     }
 
     public static function ajax_delete_member() {
