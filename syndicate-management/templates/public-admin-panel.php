@@ -1909,6 +1909,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                             <button class="sm-tab-btn <?php echo $sub == 'academic' ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('academic-settings', this)">مسميات الحقول</button>
                             <button class="sm-tab-btn <?php echo $sub == 'finance' ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('finance-settings', this)">الرسوم والغرامات</button>
                             <button class="sm-tab-btn <?php echo $sub == 'notifications' ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('notification-settings', this)">التنبيهات والبريد</button>
+                            <button class="sm-tab-btn <?php echo $sub == 'cover' ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('cover-box-settings', this)">صندوق الغلاف (Cover Box)</button>
                         </div>
 
                         <div id="syndicate-settings" class="sm-internal-tab" style="display: <?php echo ($sub == 'init') ? 'block' : 'none'; ?>;">
@@ -2105,6 +2106,74 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
 
                         <div id="notification-settings" class="sm-internal-tab" style="display: <?php echo ($sub == 'notifications') ? 'block' : 'none'; ?>;">
                             <?php include SM_PLUGIN_DIR . 'templates/admin-notifications.php'; ?>
+                        </div>
+
+                        <div id="cover-box-settings" class="sm-internal-tab" style="display: <?php echo ($sub == 'cover') ? 'block' : 'none'; ?>;">
+                            <?php $cover = SM_Settings::get_cover_settings(); ?>
+                            <form method="post">
+                                <?php wp_nonce_field('sm_admin_action', 'sm_admin_nonce'); ?>
+                                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:25px; box-shadow:var(--sm-shadow);">
+                                    <h4 style="margin:0 0 20px 0; border-bottom:2px solid #f1f5f9; padding-bottom:12px; font-weight:800;">إدارة صندوق الغلاف (Homepage Cover Box)</h4>
+
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:25px;">
+                                        <div class="sm-form-group">
+                                            <label class="sm-label">رسالة الترحيب الرئيسية:</label>
+                                            <input type="text" name="welcome_msg" value="<?php echo esc_attr($cover['welcome_msg']); ?>" class="sm-input">
+                                        </div>
+                                        <div class="sm-form-group">
+                                            <label class="sm-label">نص زر الدخول:</label>
+                                            <input type="text" name="login_btn_label" value="<?php echo esc_attr($cover['login_btn_label']); ?>" class="sm-input">
+                                        </div>
+                                        <div class="sm-form-group">
+                                            <label class="sm-label">نص زر الخدمات:</label>
+                                            <input type="text" name="services_btn_label" value="<?php echo esc_attr($cover['services_btn_label']); ?>" class="sm-input">
+                                        </div>
+                                        <div class="sm-form-group">
+                                            <label class="sm-label">سرعة التبديل بين الصور (ميلي ثانية):</label>
+                                            <input type="number" name="slider_interval" value="<?php echo esc_attr($cover['slider_interval']); ?>" class="sm-input">
+                                        </div>
+                                    </div>
+
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-bottom:25px; background:#f8fafc; padding:20px; border-radius:12px;">
+                                        <div class="sm-form-group">
+                                            <label class="sm-label">قوة الفلتر / التغبيش (Filter Intensity - px):</label>
+                                            <input type="range" name="filter_intensity" min="0" max="20" step="1" value="<?php echo esc_attr($cover['filter_intensity']); ?>" class="sm-input" style="height:auto;">
+                                        </div>
+                                        <div class="sm-form-group">
+                                            <label class="sm-label">لون الفلتر (Overlay Color):</label>
+                                            <input type="text" name="filter_color" value="<?php echo esc_attr($cover['filter_color']); ?>" class="sm-input" placeholder="rgba(0,0,0,0.3)">
+                                        </div>
+                                    </div>
+
+                                    <div class="sm-form-group">
+                                        <label class="sm-label">قائمة صور الغلاف:</label>
+                                        <div id="sm-cover-images-list" style="display:grid; gap:10px;">
+                                            <?php
+                                            $imgs = $cover['images'] ?: [''];
+                                            foreach($imgs as $img): ?>
+                                                <div style="display:flex; gap:10px;">
+                                                    <input type="text" name="cover_images[]" value="<?php echo esc_attr($img); ?>" class="sm-input" placeholder="رابط الصورة المباشر">
+                                                    <button type="button" class="sm-btn sm-btn-outline" style="width:auto; padding:0 15px;" onclick="this.parentElement.remove()">حذف</button>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <button type="button" class="sm-btn" style="width:auto; margin-top:10px; background:#4a5568;" onclick="smAddCoverImageField()">+ إضافة صورة أخرى</button>
+                                    </div>
+
+                                    <div style="margin-top:30px; text-align:center;">
+                                        <button type="submit" name="sm_save_cover_settings" class="sm-btn" style="width:auto; padding:0 60px; height:50px; font-weight:800;">حفظ إعدادات الغلاف</button>
+                                    </div>
+                                </div>
+                            </form>
+                            <script>
+                            function smAddCoverImageField() {
+                                const div = document.createElement('div');
+                                div.style.display = 'flex';
+                                div.style.gap = '10px';
+                                div.innerHTML = '<input type="text" name="cover_images[]" class="sm-input" placeholder="رابط الصورة المباشر"><button type="button" class="sm-btn sm-btn-outline" style="width:auto; padding:0 15px;" onclick="this.parentElement.remove()">حذف</button>';
+                                document.getElementById('sm-cover-images-list').appendChild(div);
+                            }
+                            </script>
                         </div>
 
 
