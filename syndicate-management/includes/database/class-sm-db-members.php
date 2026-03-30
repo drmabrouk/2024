@@ -323,6 +323,7 @@ class SM_DB_Members {
 
         $insert_data = array(
             'national_id' => $national_id,
+            'member_code' => sanitize_text_field($data['member_code'] ?? ''),
             'name' => $name,
             'gender' => sanitize_text_field($data['gender'] ?? 'male'),
             'professional_grade' => sanitize_text_field($data['professional_grade'] ?? ''),
@@ -383,7 +384,7 @@ class SM_DB_Members {
 
         $update_data = array();
         $fields = [
-            'national_id', 'name', 'gender', 'professional_grade', 'specialization',
+            'national_id', 'member_code', 'name', 'gender', 'professional_grade', 'specialization',
             'academic_degree', 'university', 'faculty', 'department', 'graduation_date',
             'residence_street', 'residence_city', 'residence_governorate',
             'governorate', 'membership_number', 'membership_start_date',
