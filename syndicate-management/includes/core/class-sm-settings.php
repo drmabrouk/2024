@@ -440,4 +440,22 @@ class SM_Settings {
 
         return in_array($module_or_action, $perms[$role]['modules']) || in_array($module_or_action, $perms[$role]['actions']);
     }
+
+    public static function get_cover_settings() {
+        $default = array(
+            'images' => array(), // List of image URLs
+            'welcome_msg' => 'أهلاً بك في البوابة الرقمية للنقابة',
+            'login_btn_label' => 'تسجيل الدخول',
+            'services_btn_label' => 'الخدمات الإلكترونية',
+            'filter_intensity' => '0', // Blur or dark filter? User said "filter intensity"
+            'filter_color' => 'rgba(0,0,0,0.3)',
+            'is_slider' => '0',
+            'slider_interval' => '5000'
+        );
+        return get_option('sm_cover_settings', $default);
+    }
+
+    public static function save_cover_settings($data) {
+        update_option('sm_cover_settings', $data);
+    }
 }

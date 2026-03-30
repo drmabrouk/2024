@@ -105,6 +105,7 @@ class SM_Public {
         add_shortcode('verify', array($this, 'shortcode_verify'));
         add_shortcode('sm_branches', array($this, 'shortcode_branches'));
         add_shortcode('contact', array($this, 'shortcode_contact'));
+        add_shortcode('sm_cover', array($this, 'shortcode_cover_box'));
 
         add_filter('authenticate', array($this, 'custom_authenticate'), 20, 3);
         add_filter('auth_cookie_expiration', array($this, 'custom_auth_cookie_expiration'), 10, 3);
@@ -486,6 +487,25 @@ class SM_Public {
             wp_redirect(add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'permissions', 'settings_saved' => 1], wp_get_referer()));
             exit;
         }
+
+        if (isset($_POST['sm_save_cover_settings'])) {
+            check_admin_referer('sm_admin_action', 'sm_admin_nonce');
+            $data = SM_Settings::get_cover_settings();
+            $data['welcome_msg'] = sanitize_text_field($_POST['welcome_msg']);
+            $data['login_btn_label'] = sanitize_text_field($_POST['login_btn_label']);
+            $data['services_btn_label'] = sanitize_text_field($_POST['services_btn_label']);
+            $data['filter_intensity'] = sanitize_text_field($_POST['filter_intensity']);
+            $data['filter_color'] = sanitize_text_field($_POST['filter_color']);
+            $data['slider_interval'] = sanitize_text_field($_POST['slider_interval']);
+
+            // Handle multi-image list
+            $images = isset($_POST['cover_images']) ? array_map('esc_url_raw', $_POST['cover_images']) : [];
+            $data['images'] = array_values(array_filter($images));
+
+            SM_Settings::save_cover_settings($data);
+            wp_redirect(add_query_arg(['sm_tab' => 'global-settings', 'sub' => 'cover', 'settings_saved' => 1], wp_get_referer()));
+            exit;
+        }
     }
 
     public static function ajax_refresh_dashboard() {
@@ -494,6 +514,49 @@ class SM_Public {
         }
         check_ajax_referer('sm_admin_action', 'nonce');
         wp_send_json_success(array('stats' => SM_DB::get_statistics()));
+    }
+
+    public function shortcode_cover_box() {
+        $settings = SM_Settings::get_cover_settings();
+        $appearance = SM_Settings::get_appearance();
+        $images = $settings['images'] ?: [SM_PLUGIN_URL . 'assets/images/default-cover.jpg'];
+        $is_slider = count($images) > 1;
+
+        ob_start();
+        ?>
+        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:450px; border-radius:30px; overflow:hidden; margin-bottom:40px; box-shadow:0 15px 35px -5px <?php echo $appearance['primary_color']; ?>40;">
+            <div class="sm-cover-slider" style="width:100%; height:100%; position:relative;">
+                <?php foreach($images as $idx => $img): ?>
+                    <div class="sm-cover-slide <?php echo $idx === 0 ? 'active' : ''; ?>" style="position:absolute; top:0; left:0; width:100%; height:100%; background:url('<?php echo esc_url($img); ?>') center/cover no-repeat; opacity:<?php echo $idx === 0 ? '1' : '0'; ?>; transition: opacity 1s ease-in-out;">
+                        <div class="sm-cover-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:<?php echo esc_attr($settings['filter_color']); ?>; backdrop-filter: blur(<?php echo intval($settings['filter_intensity']); ?>px);"></div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="sm-cover-content" style="position:absolute; bottom:60px; right:60px; z-index:10; color:#fff; max-width:600px;">
+                <h1 style="font-size:3em; font-weight:900; margin:0 0 30px 0; line-height:1.2; text-shadow:0 2px 10px rgba(0,0,0,0.5);"><?php echo esc_html($settings['welcome_msg']); ?></h1>
+                <div style="display:flex; gap:20px;">
+                    <a href="<?php echo is_user_logged_in() ? home_url('/dashboard') : home_url('/sm-login'); ?>" class="sm-btn" style="height:55px; padding:0 40px; font-weight:800; border-radius:15px; font-size:1.1em; display:flex; align-items:center; background:#fff; color:var(--sm-primary-color) !important; box-shadow:0 10px 20px rgba(0,0,0,0.1);"><?php echo esc_html($settings['login_btn_label']); ?></a>
+                    <a href="<?php echo home_url('/services'); ?>" class="sm-btn sm-btn-outline" style="height:55px; padding:0 40px; font-weight:800; border-radius:15px; font-size:1.1em; display:flex; align-items:center; border:2px solid #fff; color:#fff !important; background:rgba(255,255,255,0.1); backdrop-filter:blur(10px);"><?php echo esc_html($settings['services_btn_label']); ?></a>
+                </div>
+            </div>
+
+            <?php if($is_slider): ?>
+            <script>
+                (function() {
+                    let current = 0;
+                    const slides = document.querySelectorAll('.sm-cover-slide');
+                    setInterval(() => {
+                        slides[current].style.opacity = '0';
+                        current = (current + 1) % slides.length;
+                        slides[current].style.opacity = '1';
+                    }, <?php echo intval($settings['slider_interval'] ?: 5000); ?>);
+                })();
+            </script>
+            <?php endif; ?>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 
     public static function ajax_get_user_role() {
