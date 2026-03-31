@@ -524,7 +524,7 @@ class SM_Public {
 
         ob_start();
         ?>
-        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:320px; border-radius:15px; overflow:hidden; margin:0; box-shadow:none;">
+        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:400px; border-radius:15px; overflow:hidden; margin:0; box-shadow:none;">
             <div class="sm-cover-slider" style="width:100%; height:100%; position:relative;">
                 <?php foreach($images as $idx => $img): ?>
                     <div class="sm-cover-slide <?php echo $idx === 0 ? 'active' : ''; ?>" style="position:absolute; top:0; left:0; width:100%; height:100%; background:url('<?php echo esc_url($img); ?>') center/cover no-repeat; opacity:<?php echo $idx === 0 ? '1' : '0'; ?>; transition: opacity 1s ease-in-out; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
@@ -553,11 +553,11 @@ class SM_Public {
             <style>
                 .sm-btn-cover:hover { opacity: 0.9; }
                 @media (max-width: 768px) {
-                    .sm-cover-box { height: 260px !important; border-radius: 10px !important; }
+                    .sm-cover-box { height: 300px !important; border-radius: 10px !important; }
                     .sm-cover-content { padding: 0 20px !important; align-items: center !important; text-align: center !important; }
-                    .sm-cover-title { font-size: 1.35em !important; }
-                    .sm-cover-desc { font-size: 12.5px !important; margin: 10px 0 18px 0 !important; }
-                    .sm-btn-cover { height: 34px !important; padding: 0 18px !important; font-size: 12.5px !important; }
+                    .sm-cover-title { font-size: 1.4em !important; }
+                    .sm-cover-desc { font-size: 13px !important; margin: 10px 0 18px 0 !important; }
+                    .sm-btn-cover { height: 36px !important; padding: 0 18px !important; font-size: 13px !important; }
                 }
             </style>
 
