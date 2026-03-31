@@ -827,3 +827,57 @@
     .sm-info-grid, .sm-contact-grid { grid-template-columns: 1fr; }
     .sm-hero-section h1 { font-size: 2em; }
 }
+
+/* Branches Portal Enhanced Styles */
+.sm-branches-portal {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.sm-card-modern {
+    background: #fff;
+    border: 1px solid var(--sm-border-color);
+    border-radius: 28px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sm-card-modern:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+    border-color: var(--sm-primary-color);
+}
+
+.sm-btn-view-details {
+    transition: 0.3s;
+    background: #fff;
+    color: var(--sm-dark-color) !important;
+}
+
+.sm-btn-view-details:hover {
+    background: var(--sm-dark-color);
+    color: #fff !important;
+    border-color: var(--sm-dark-color);
+}
+
+.sm-branch-details-expanded {
+    border-top: 2px dashed #f1f5f9;
+    padding-top: 30px;
+    margin-top: 35px;
+}
+
+.sm-branch-details-expanded.active {
+    display: block !important;
+    animation: smFadeInSlide 0.4s ease-out forwards;
+}
+
+@keyframes smFadeInSlide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sm-portal-hero input:focus {
+    background: #fff !important;
+    border-color: var(--sm-primary-color) !important;
+    box-shadow: 0 10px 20px rgba(246, 48, 73, 0.05) !important;
+}
