@@ -189,18 +189,77 @@ window.smLoadMoreServices = function() {
 window.smHandleServiceClick = function(btn, s) {
     const isLoggedIn = <?php echo is_user_logged_in() ? 'true' : 'false'; ?>;
     const member = <?php echo $current_member ? wp_json_encode($current_member) : 'null'; ?>;
+    const isMemberRole = <?php echo $is_member_role ? 'true' : 'false'; ?>;
+    const userRoleLabel = '<?php echo esc_js($role_label); ?>';
 
-    if (!isLoggedIn) {
-        window.location.href = '<?php echo home_url("/sm-login"); ?>';
-        return;
-    }
-
-    if (!member) {
-        smNotify('عذراً، هذه الخدمة متاحة فقط للأعضاء المسجلين. يرجى التواصل مع الإدارة لتفعيل ملفك العضوي.', true);
+    if (!isLoggedIn || !member || !isMemberRole) {
+        smShowAccessRestrictionModal(isLoggedIn, userRoleLabel);
         return;
     }
 
     smOpenProgressiveForm(btn, s, member);
+};
+
+window.smShowAccessRestrictionModal = function(isLoggedIn, roleLabel) {
+    const container = document.getElementById('sm-service-dropdown-container');
+    const body = document.getElementById('sm-dropdown-body');
+
+    // Hide stepper for this informative modal
+    const stepper = document.querySelector('.sm-stepper-header');
+    if(stepper) stepper.style.display = 'none';
+
+    container.style.display = 'flex';
+
+    let html = `
+        <div style="text-align: center; padding: 20px 10px; animation: smFadeIn 0.4s ease;">
+            <div style="width: 80px; height: 80px; background: rgba(246, 48, 73, 0.1); color: var(--sm-primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; font-size: 40px;">
+                <span class="dashicons dashicons-lock" style="font-size: 40px; width: 40px; height: 40px;"></span>
+            </div>
+
+            <h3 style="font-weight: 900; font-size: 1.8em; color: var(--sm-dark-color); margin-bottom: 15px;">صلاحية الوصول للخدمات الرقمية</h3>
+
+            ${isLoggedIn ? `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; margin-bottom: 25px;">
+                    <div style="font-size: 13px; color: #64748b; margin-bottom: 5px;">دور المستخدم الحالي:</div>
+                    <div style="font-weight: 800; color: var(--sm-primary-color); font-size: 1.1em;">${roleLabel}</div>
+                </div>
+                <p style="color: #4a5568; font-size: 15px; line-height: 1.7; margin-bottom: 30px;">نحيط سيادتكم علماً بأن <strong>طلب الخدمات الرقمية متاح حصرياً للسادة أعضاء النقابة المقيدين</strong>.<br>لتقديم هذا الطلب، يجب الدخول عبر حساب عضو نقابة (Syndicate Member) نشط وموثق.</p>
+            ` : `
+                <p style="color: #4a5568; font-size: 15px; line-height: 1.7; margin-bottom: 30px;">للاستفادة من الخدمات الرقمية للنقابة، يرجى تسجيل الدخول إلى حسابك الشخصي.<br><strong>هذه الخدمات مخصصة حصرياً للأعضاء المسجلين في منظومة النقابة الرقمية.</strong></p>
+            `}
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                ${!isLoggedIn ? `
+                    <a href="<?php echo home_url('/sm-login'); ?>" class="sm-btn" style="width: 100%; height: 55px; font-weight: 800; border-radius: 15px; display: flex; align-items: center; justify-content: center; text-decoration: none !important;">
+                        تسجيل الدخول للنظام
+                    </a>
+                ` : ''}
+                <button onclick="document.getElementById('sm-service-dropdown-container').style.display='none'" class="sm-btn sm-btn-outline" style="width: 100%; height: 50px; font-weight: 700; border-radius: 12px;">
+                    إغلاق النافذة
+                </button>
+            </div>
+        </div>
+    `;
+
+    body.innerHTML = html;
+
+    // Ensure stepper is restored when modal is closed next time
+    const closeBtn = document.querySelector('#sm-service-dropdown-content > button');
+    if(closeBtn) {
+        const oldClick = closeBtn.onclick;
+        closeBtn.onclick = function() {
+            if(stepper) stepper.style.display = 'flex';
+            if(oldClick) oldClick();
+        };
+    }
+
+    // Also restore stepper on the outline button click
+    const cancelBtn = body.querySelector('.sm-btn-outline');
+    if(cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            if(stepper) stepper.style.display = 'flex';
+        });
+    }
 };
 
 window.smOpenProgressiveForm = function(btn, s, member) {
