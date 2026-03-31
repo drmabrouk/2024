@@ -959,6 +959,10 @@ class SM_Activator {
             'practice-test' => array(
                 'title' => 'امتحانات تراخيص المزاولة',
                 'content' => '[test]'
+            ),
+            'verify' => array(
+                'title' => 'بوابة التحقق الرقمية',
+                'content' => '[verify]'
             )
         );
 

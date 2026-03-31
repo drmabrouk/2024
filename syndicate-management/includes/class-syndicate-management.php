@@ -239,6 +239,7 @@ class Syndicate_Management {
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
         $this->loader->add_action('wp_footer', $plugin_public, 'inject_global_alerts');
         $this->loader->add_action('init', $plugin_public, 'register_shortcodes');
+        $this->loader->add_filter('the_content', $plugin_public, 'append_cover_v2_to_homepage');
         $this->loader->add_action('template_redirect', $plugin_public, 'handle_form_submission');
         $this->loader->add_action('wp_login_failed', $plugin_public, 'login_failed');
         $this->loader->add_action('wp_login', $plugin_public, 'log_successful_login', 10, 2);

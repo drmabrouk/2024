@@ -106,6 +106,7 @@ class SM_Public {
         add_shortcode('sm_branches', array($this, 'shortcode_branches'));
         add_shortcode('contact', array($this, 'shortcode_contact'));
         add_shortcode('sm_cover', array($this, 'shortcode_cover_box'));
+        add_shortcode('sm_cover_2', array($this, 'shortcode_cover_2'));
 
         add_filter('authenticate', array($this, 'custom_authenticate'), 20, 3);
         add_filter('auth_cookie_expiration', array($this, 'custom_auth_cookie_expiration'), 10, 3);
@@ -259,6 +260,50 @@ class SM_Public {
             }
         }
         </script>
+        <?php
+        return ob_get_clean();
+    }
+
+    public function append_cover_v2_to_homepage($content) {
+        if (is_front_page() && is_main_query()) {
+            $content .= do_shortcode('[sm_cover_2]');
+        }
+        return $content;
+    }
+
+    public function shortcode_cover_2() {
+        ob_start();
+        ?>
+        <div class="sm-cover-box sm-cover-v2" dir="rtl" style="position:relative; width:100%; height:400px; border-radius:25px; overflow:hidden; margin:40px 0; background: linear-gradient(135deg, var(--sm-primary-color) 0%, var(--sm-dark-color) 100%); display:flex; align-items:center; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            <div style="position:absolute; top:-50px; right:-50px; width:200px; height:200px; background:rgba(255,255,255,0.05); border-radius:50%;"></div>
+            <div style="position:absolute; bottom:-80px; left:10%; width:300px; height:300px; background:rgba(255,255,255,0.03); border-radius:50%;"></div>
+
+            <div class="sm-cover-content" style="position:relative; z-index:10; padding:0 60px; color:#fff; width:100%;">
+                <div style="display:inline-flex; align-items:center; justify-content:center; width:60px; height:60px; background:rgba(255,255,255,0.1); border-radius:20px; margin-bottom:25px; backdrop-filter:blur(10px);">
+                    <span class="dashicons dashicons-shield-check" style="font-size:30px; width:30px; height:30px; color:#fff;"></span>
+                </div>
+                <h2 style="font-size:2.4em; font-weight:900; margin:0; color:#fff; line-height:1.2;">بوابة التحقق الرقمية الموحدة</h2>
+                <p style="font-size:18px; font-weight:400; margin:15px 0 35px 0; color:rgba(255,255,255,0.8); max-width:700px; line-height:1.6;">تأكد من صحة بيانات العضوية، التراخيص المهنية، وتصاريح المنشآت بشكل فوري عبر البوابة الرسمية للنقابة لضمان الشفافية والموثوقية.</p>
+                <div style="display:flex; gap:15px;">
+                    <a href="<?php echo home_url('/verify'); ?>" class="sm-btn-cover" style="height:55px; padding:0 40px; font-weight:800; border-radius:15px; font-size:16px; display:flex; align-items:center; background:#fff; color:var(--sm-primary-color) !important; text-decoration:none !important; transition:0.3s transform;">
+                        الدخول لبوابة التحقق
+                        <span class="dashicons dashicons-arrow-left-alt2" style="margin-right:10px;"></span>
+                    </a>
+                </div>
+            </div>
+
+            <style>
+                .sm-cover-v2 .sm-btn-cover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+                @media (max-width: 768px) {
+                    .sm-cover-v2 { height: auto !important; padding: 60px 0 !important; border-radius: 20px !important; }
+                    .sm-cover-v2 .sm-cover-content { padding: 0 30px !important; text-align: center !important; }
+                    .sm-cover-v2 .sm-cover-content div { justify-content: center !important; margin-left:auto; margin-right:auto; }
+                    .sm-cover-v2 h2 { font-size: 1.8em !important; }
+                    .sm-cover-v2 p { font-size: 15px !important; }
+                    .sm-cover-v2 .sm-btn-cover { width:100%; justify-content:center; height:50px !important; }
+                }
+            </style>
+        </div>
         <?php
         return ob_get_clean();
     }
