@@ -23,6 +23,10 @@
     color: var(--sm-dark-color);
 }
 
+.sm-admin-dashboard {
+    margin: 40px 0;
+}
+
 .sm-btn, .sm-btn * {
     color: white !important;
 }
@@ -767,9 +771,8 @@
 }
 
 /* Portal Layout (Member Account Sidebar) */
-.sm-portal-layout .sm-portal-grid {
-    display: grid !important;
-    grid-template-columns: 300px 1fr;
+.sm-portal-layout .sm-portal-layout-container {
+    display: flex !important;
     gap: 30px;
     align-items: start;
 }

@@ -42,17 +42,18 @@ class SM_Public {
         $is_officer = in_array('sm_general_officer', $roles) || in_array('sm_branch_officer', $roles) || in_array('administrator', $roles);
         $is_member = in_array('sm_member', $roles);
 
-        global $wp;
-        $current_path = trim($wp->request, '/');
-
-        if ($is_officer) {
-            if ($current_path === 'my-account' || $current_path === 'sm-admin') {
-                wp_redirect(add_query_arg($_GET, home_url('/dashboard')));
+        // Ensure members are always on /my-account and never on /dashboard
+        if ($is_member) {
+            if (is_page('dashboard') || is_page('sm-admin')) {
+                wp_redirect(home_url('/my-account'));
                 exit;
             }
-        } elseif ($is_member) {
-            if ($current_path === 'dashboard' || $current_path === 'sm-admin') {
-                wp_redirect(add_query_arg($_GET, home_url('/my-account')));
+        }
+
+        // Ensure officers/admins are on /dashboard when trying to access /my-account
+        if ($is_officer) {
+            if (is_page('my-account') || is_page('sm-admin')) {
+                wp_redirect(home_url('/dashboard'));
                 exit;
             }
         }
