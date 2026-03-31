@@ -1009,6 +1009,11 @@ class SM_Activator {
             $wpdb->query("ALTER TABLE $table_name ADD province_of_birth tinytext AFTER governorate");
         }
 
+        $code_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'member_code'));
+        if (empty($code_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD member_code tinytext AFTER national_id");
+        }
+
         $deleted_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'is_deleted'));
         if (empty($deleted_col)) {
             $wpdb->query("ALTER TABLE $table_name ADD is_deleted tinyint(1) DEFAULT 0 AFTER sort_order");

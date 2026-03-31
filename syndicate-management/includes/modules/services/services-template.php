@@ -88,6 +88,86 @@
 .sm-step-item.active div:last-child { color: var(--sm-dark-color) !important; }
 .sm-progressive-field { margin-bottom: 20px; }
 .sm-progressive-field label { display: block; font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 8px; }
+
+/* Mobile Responsiveness Improvements */
+@media (max-width: 992px) {
+    .sm-services-layout { flex-direction: column; gap: 20px !important; margin-top: 20px !important; }
+    .sm-services-sidebar { width: 100% !important; position: static !important; padding: 20px !important; border-radius: 15px !important; }
+    .sm-services-sidebar h4 { margin-bottom: 15px !important; }
+}
+
+@media (max-width: 768px) {
+    #sm-services-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+    .sm-service-card-modern { padding: 20px !important; border-radius: 15px !important; }
+    .sm-service-card-modern h3 { font-size: 1.15em !important; }
+    .sm-service-card-modern p { font-size: 12.5px !important; margin-bottom: 15px !important; }
+
+    #sm-service-dropdown-container { padding: 10px !important; }
+    #sm-service-dropdown-content {
+        padding: 30px 20px !important;
+        border-radius: 20px !important;
+        max-height: 95vh;
+        overflow-y: auto;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    .sm-stepper-header { padding: 0 !important; gap: 5px !important; margin-bottom: 30px !important; }
+    .sm-step-item div:last-child { display: none; } /* Hide labels on mobile stepper */
+    .sm-stepper-header div[style*="absolute"] { left: 30px !important; right: 30px !important; top: 15px !important; }
+
+    .sm-service-trigger { width: 100%; text-align: center; height: 42px !important; font-size: 14px !important; }
+
+    /* Grid layout adjustments inside modals */
+    .sm-step-content div[style*="display: grid"] { grid-template-columns: 1fr !important; gap: 15px !important; }
+
+    /* Welcome box adjustment */
+    .sm-step-content div[style*="display: flex"][style*="align-items: center"] {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 15px !important;
+        padding: 20px !important;
+    }
+
+    /* Bank Info Grid */
+    .sm-step-content div[style*="display: grid"][style*="repeat(4, 1fr)"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .sm-step-content h3 { font-size: 1.3em !important; }
+}
+
+@media (max-width: 576px) {
+    /* Bank Info Grid - Full Stack on mobile */
+    .sm-step-content div[style*="display: grid"][style*="repeat(4, 1fr)"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .sm-service-card-modern { padding: 20px !important; }
+    .sm-service-card-modern h3 { font-size: 1.1em !important; }
+    .sm-service-card-modern .sm-service-icon { width: 45px !important; height: 45px !important; }
+    .sm-service-card-modern .sm-service-icon .dashicons { font-size: 22px !important; width: 22px !important; height: 22px !important; }
+
+    /* Stack the card footer on very small devices */
+    .sm-service-card-modern div[style*="justify-content: space-between"] {
+        flex-direction: column !important;
+        gap: 15px !important;
+        align-items: flex-start !important;
+    }
+    .sm-service-card-modern .sm-service-trigger { width: 100% !important; height: 45px !important; }
+
+    #sm_load_more_services { width: 100% !important; padding: 12px 20px !important; font-size: 14px !important; }
+
+    /* Form Buttons Stacking */
+    .sm-step-content div[style*="grid-template-columns"] {
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        gap: 10px !important;
+    }
+    .sm-step-content .sm-btn { width: 100% !important; height: 48px !important; }
+}
 </style>
 
 <script>
