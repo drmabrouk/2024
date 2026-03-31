@@ -45,6 +45,8 @@ class Syndicate_Management {
         require_once SM_PLUGIN_DIR . 'includes/modules/education/class-sm-education-manager.php';
         require_once SM_PLUGIN_DIR . 'includes/modules/system/class-sm-system-manager.php';
         require_once SM_PLUGIN_DIR . 'includes/modules/system/class-sm-print-manager.php';
+        require_once SM_PLUGIN_DIR . 'includes/modules/education/class-sm-certificate-manager.php';
+        require_once SM_PLUGIN_DIR . 'includes/database/class-sm-db-certificates.php';
 
         // Controllers
         require_once SM_PLUGIN_DIR . 'admin/class-sm-admin.php';
@@ -127,6 +129,12 @@ class Syndicate_Management {
             'sm_verify_suggest' => ['SM_License_Manager', 'ajax_verify_suggest'],
             'sm_print_license' => ['SM_License_Manager', 'ajax_print_license'],
             'sm_print_facility' => ['SM_License_Manager', 'ajax_print_facility'],
+
+            // Certificates Module
+            'sm_add_certificate' => ['SM_Certificate_Manager', 'ajax_add_certificate'],
+            'sm_import_certificates_json' => ['SM_Certificate_Manager', 'ajax_import_certificates_json'],
+            'sm_delete_certificate' => ['SM_Certificate_Manager', 'ajax_delete_certificate'],
+            'sm_print_certificate' => ['SM_Certificate_Manager', 'ajax_print_certificate'],
 
             // Messaging Module
             'sm_send_message_ajax' => ['SM_Messaging_Manager', 'ajax_send_message'],

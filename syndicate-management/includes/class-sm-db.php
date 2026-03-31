@@ -498,6 +498,27 @@ class SM_DB {
         return SM_DB_System::get_backup_data();
     }
 
+    // Certificate Delegation
+    public static function add_certificate($data) {
+        return SM_DB_Certificates::add_certificate($data);
+    }
+
+    public static function get_certificates($args = []) {
+        return SM_DB_Certificates::get_certificates($args);
+    }
+
+    public static function get_certificate_by_id($id) {
+        return SM_DB_Certificates::get_certificate_by_id($id);
+    }
+
+    public static function get_certificate_by_serial($s) {
+        return SM_DB_Certificates::get_certificate_by_serial($s);
+    }
+
+    public static function delete_certificate($id) {
+        return SM_DB_Certificates::delete_certificate($id);
+    }
+
     public static function restore_backup($j) {
         return SM_DB_System::restore_backup($j);
     }

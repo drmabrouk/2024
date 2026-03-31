@@ -194,6 +194,7 @@ class SM_License_Manager {
             if ($type === 'auto') {
                 if (preg_match('/^[0-9]{14}$/', $val)) $type = 'national_id';
                 elseif (strpos($val, 'REG-') === 0 || strpos($val, 'SR-') === 0 || (strlen($val) > 8 && is_numeric($val))) $type = 'tracking';
+                elseif (strpos($val, 'CERT-') === 0) $type = 'certificate';
                 elseif (is_numeric($val)) $type = 'numeric_short';
             }
 
@@ -251,8 +252,49 @@ class SM_License_Manager {
                 }
             }
 
+            if ($type === 'certificate') {
+                $cert = SM_DB_Certificates::get_certificate_by_serial($val);
+                if ($cert) {
+                    if (!$is_admin && $my_gov && $cert->governorate !== $my_gov) {
+                        wp_send_json_error(['message' => 'هذه الشهادة تابعة لفرع آخر.']);
+                    }
+                    $cert_data = [
+                        'serial' => $cert->serial_number,
+                        'course' => $cert->title,
+                        'member' => $cert->member_name ?: ($cert->member_nid ?: '---'),
+                        'issue_date' => $cert->issue_date,
+                        'expiry_date' => $cert->expiry_date ?: '---',
+                        'grade' => $cert->grade ?: '---',
+                        'branch' => SM_Settings::get_branch_name($cert->governorate)
+                    ];
+                    wp_send_json_success([[ 'type' => 'certificate', 'certificate' => $cert_data ]]);
+                }
+            }
+
             // Fallback: Partial Name or Facility Name search
             if ($type === 'auto' && strlen($val) >= 3 && !is_numeric($val)) {
+                // Try searching certificates first
+                $certs = SM_DB_Certificates::get_certificates(['search' => $val, 'limit' => 5]);
+                if (!empty($certs)) {
+                    $cert_blocks = [];
+                    foreach ($certs as $c) {
+                        if (!$is_admin && $my_gov && $c->governorate !== $my_gov) continue;
+                        $cert_blocks[] = [
+                            'type' => 'certificate',
+                            'certificate' => [
+                                'serial' => $c->serial_number,
+                                'course' => $c->title,
+                                'member' => $c->member_name ?: ($c->member_nid ?: '---'),
+                                'issue_date' => $c->issue_date,
+                                'expiry_date' => $c->expiry_date ?: '---',
+                                'grade' => $c->grade ?: '---',
+                                'branch' => SM_Settings::get_branch_name($c->governorate)
+                            ]
+                        ];
+                    }
+                    if (!empty($cert_blocks)) wp_send_json_success($cert_blocks);
+                }
+
                 // Try searching members (including facility names)
                 $members = SM_DB::get_members(['search' => $val, 'limit' => 5]);
                 if (!empty($members)) {
@@ -402,6 +444,15 @@ class SM_License_Manager {
                 if ($type === 'membership' || $type === 'auto') if($r->membership_number) $sug[] = $r->membership_number;
                 if ($type === 'practice' || $type === 'auto') if($r->license_number) $sug[] = $r->license_number;
             }
+
+            if ($type === 'certificate' || $type === 'auto') {
+                $certs = SM_DB_Certificates::get_certificates(['search' => $q, 'limit' => 5]);
+                foreach ($certs as $c) {
+                    $sug[] = $c->serial_number;
+                    $sug[] = $c->title;
+                }
+            }
+
             wp_send_json_success(array_values(array_unique(array_filter($sug))));
         } catch (Throwable $e) {
             wp_send_json_error(['message' => $e->getMessage()]);

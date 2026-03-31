@@ -29,6 +29,7 @@ $show_facility = get_option('sm_verify_show_facility', 1);
                         <option value="membership">💳 رقم القيد النقابي</option>
                         <option value="practice">📜 ترخيص مزاولة المهنة</option>
                         <option value="facility">🏠 ترخيص المنشأة</option>
+                        <option value="certificate">🎓 شهادات ودورات تدريبية</option>
                         <option value="tracking">📦 كود تتبع الطلبات</option>
                     </select>
                 </div>
@@ -281,6 +282,7 @@ $show_facility = get_option('sm_verify_show_facility', 1);
             membership: blocks.filter(b => b.type === 'membership'),
             practice: blocks.filter(b => b.type === 'practice'),
             facility: blocks.filter(b => b.type === 'facility'),
+            certificate: blocks.filter(b => b.type === 'certificate'),
             tracking: blocks.filter(b => b.type === 'tracking')
         };
 
@@ -288,6 +290,7 @@ $show_facility = get_option('sm_verify_show_facility', 1);
         if (groups.membership.length > 0 && config.show_membership) renderSection('السجل النقابي', groups.membership.map(b => getMembershipCard(b.membership)));
         if (groups.practice.length > 0 && config.show_practice) renderSection('تراخيص المزاولة', groups.practice.map(b => getPracticeCard(b.practice)));
         if (groups.facility.length > 0 && config.show_facility) renderSection('تراخيص المنشآت', groups.facility.map(b => getFacilityCard(b.facility)));
+        if (groups.certificate.length > 0) renderSection('شهادات ودورات معتمدة', groups.certificate.map(b => getCertificateCard(b.certificate)));
         if (groups.tracking.length > 0) renderSection('الطلبات الرقمية', groups.tracking.map(b => getTrackingCard(b.tracking)));
 
         resultsArea.append(`<div style="text-align: center; margin-top: 20px;">
@@ -326,6 +329,21 @@ $show_facility = get_option('sm_verify_show_facility', 1);
                 <div class="sm-result-item-compact"><span class="sm-result-key">الدرجة المهنية</span><span class="sm-result-val">${o.grade}</span></div>
                 <div class="sm-result-item-compact"><span class="sm-result-key">التخصص الدقيق</span><span class="sm-result-val">${o.specialization}</span></div>
                 <div class="sm-result-item-compact"><span class="sm-result-key">الفرع النقابي</span><span class="sm-result-val">${o.branch}</span></div>
+            </div>
+        </div>`;
+    }
+
+    function getCertificateCard(c) {
+        const ok = !c.expiry_date || c.expiry_date === '---' || new Date(c.expiry_date) >= new Date();
+        return `<div class="sm-verify-card">
+            <div class="sm-verify-card-header"><div class="sm-verify-card-label">شهادة / دورة تدريبية</div><div class="sm-badge-status ${ok ? 'sm-badge-success' : 'sm-badge-danger'}">${ok ? 'شهادة معتمدة' : 'شهادة منتهية'}</div></div>
+            <div class="sm-verify-card-body">
+                <div class="sm-result-item-compact" style="border-bottom:1px solid #f1f5f9; padding-bottom:12px; margin-bottom:8px;"><span class="sm-result-key">اسم الدورة / الشهادة</span><span class="sm-result-val" style="font-size: 1.1em; color: var(--sm-primary-color);">${c.course}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الرقم المسلسل</span><span class="sm-result-val">${c.serial}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الاسم المسجل</span><span class="sm-result-val">${c.member}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">تاريخ الإصدار</span><span class="sm-result-val">${c.issue_date}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">التقدير / النتيجة</span><span class="sm-result-val">${c.grade}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الفرع المصدر</span><span class="sm-result-val">${c.branch}</span></div>
             </div>
         </div>`;
     }
