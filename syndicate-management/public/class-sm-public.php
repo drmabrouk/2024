@@ -92,6 +92,8 @@ class SM_Public {
                 font-family: 'Rubik', sans-serif !important;
             }
             .sm-admin-dashboard { font-size: {$appearance['font_size']}; }
+            @media (min-width: 769px) { .sm-mobile-only { display: none !important; } }
+            @media (max-width: 768px) { .sm-desktop-only { display: none !important; } }
         ";
         wp_add_inline_style($this->plugin_name, $custom_css);
     }
@@ -156,7 +158,19 @@ class SM_Public {
     public function shortcode_test_system() {
         if (!is_user_logged_in()) return SM_Auth::shortcode_login();
         ob_start();
-        include SM_PLUGIN_DIR . 'templates/public-test-system.php';
+        ?>
+        <div class="sm-mobile-only" style="padding: 60px 20px; text-align: center; background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; margin: 40px auto; max-width: 500px;" dir="rtl">
+            <div style="width: 80px; height: 80px; background: rgba(246, 48, 73, 0.1); color: var(--sm-primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px;">
+                <span class="dashicons dashicons-welcome-learn-more" style="font-size: 40px; width: 40px; height: 40px;"></span>
+            </div>
+            <h3 style="font-weight: 900; font-size: 1.8em; color: var(--sm-dark-color); margin-bottom: 15px;">منظومة الاختبارات المهنية</h3>
+            <p style="color: #4a5568; font-size: 15px; line-height: 1.7; margin-bottom: 30px;">لضمان استقرار جلسة الاختبار والدقة في الإجابة، <strong>يُشترط أداء الامتحانات المهنية من خلال جهاز كمبيوتر (Desktop / Laptop)</strong> مزود بمتصفح حديث وشاشة عرض مناسبة.</p>
+            <a href="<?php echo home_url(); ?>" class="sm-btn" style="width: 100%; height: 55px; font-weight: 800; border-radius: 15px; display: flex; align-items: center; justify-content: center; text-decoration: none !important;">العودة للرئيسية</a>
+        </div>
+        <div class="sm-desktop-only">
+            <?php include SM_PLUGIN_DIR . 'templates/public-test-system.php'; ?>
+        </div>
+        <?php
         return ob_get_clean();
     }
 
@@ -309,16 +323,63 @@ class SM_Public {
     }
 
     public function shortcode_admin_dashboard() {
-        if (!is_user_logged_in()) {
-            return SM_Auth::shortcode_login();
-        }
+        ob_start();
+        $is_logged_in = is_user_logged_in();
         $user = wp_get_current_user();
         $roles = (array) $user->roles;
-        $active_tab = isset($_GET['sm_tab']) ? sanitize_text_field($_GET['sm_tab']) : 'summary';
-        $stats = SM_DB::get_statistics();
+        $is_member = $is_logged_in && in_array('sm_member', $roles);
 
-        ob_start();
-        include SM_PLUGIN_DIR . 'templates/public-admin-panel.php';
+        $role_names = [
+            'administrator' => 'مدير النظام',
+            'sm_general_officer' => 'مسؤول النقابة العامة',
+            'sm_branch_officer' => 'مسؤول نقابة فرعي',
+            'sm_member' => 'عضو النقابة'
+        ];
+        $role_label = $is_logged_in ? ($role_names[reset($roles)] ?? reset($roles)) : '';
+
+        ?>
+        <div class="sm-mobile-only" style="padding: 60px 20px; text-align: center; background: #fff; border-radius: 24px; border: 1px solid #e2e8f0; margin: 40px auto; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);" dir="rtl">
+            <div style="width: 90px; height: 90px; background: rgba(246, 48, 73, 0.08); color: var(--sm-primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
+                <span class="dashicons dashicons-desktop" style="font-size: 45px; width: 45px; height: 45px;"></span>
+            </div>
+
+            <h2 style="font-weight: 900; font-size: 1.8em; color: var(--sm-dark-color); margin-bottom: 20px; letter-spacing:-0.5px;">المنظومة الرقمية للنقابة</h2>
+
+            <?php if ($is_logged_in): ?>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; margin-bottom: 25px;">
+                    <div style="font-size: 13px; color: #64748b; margin-bottom: 5px;">دور المستخدم الحالي:</div>
+                    <div style="font-weight: 800; color: var(--sm-primary-color); font-size: 1.1em;"><?php echo esc_html($role_label); ?></div>
+                </div>
+
+                <?php if ($is_member): ?>
+                    <p style="color: #4a5568; font-size: 15px; line-height: 1.8; margin-bottom: 35px;">عزيزي العضو، للاستمتاع بتجربة متكاملة والوصول لكافة الخدمات النقابية (تتبع العضوية، التراخيص، تقديم الطلبات، والمراسلات)، <strong>نوصي بشدة باستخدام جهاز كمبيوتر مكتبي أو محمول.</strong></p>
+                <?php else: ?>
+                    <p style="color: #4a5568; font-size: 15px; line-height: 1.8; margin-bottom: 35px;">نحيط سيادتكم علماً بأن <strong>لوحة التحكم المتقدمة وخصائص الإدارة الاحترافية تتطلب شاشة عرض واسعة</strong>.<br>يرجى تسجيل الدخول من خلال جهاز كمبيوتر (Desktop / Laptop) لممارسة مهامك الإدارية بكفاءة.</p>
+                <?php endif; ?>
+            <?php else: ?>
+                <p style="color: #4a5568; font-size: 15px; line-height: 1.8; margin-bottom: 35px;">للوصول إلى لوحة التحكم المتقدمة وخدمات الأعضاء الاحترافية، <strong>يرجى تسجيل الدخول من خلال جهاز كمبيوتر (Desktop / Laptop).</strong></p>
+            <?php endif; ?>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <?php if (!$is_logged_in): ?>
+                    <a href="<?php echo home_url('/sm-login'); ?>" class="sm-btn" style="width: 100%; height: 55px; font-weight: 800; border-radius: 15px; display: flex; align-items: center; justify-content: center; text-decoration: none !important;">تسجيل دخول (عبر الكمبيوتر)</a>
+                <?php endif; ?>
+                <a href="<?php echo home_url(); ?>" class="sm-btn sm-btn-outline" style="width: 100%; height: 52px; font-weight: 800; border-radius: 15px; display: flex; align-items: center; justify-content: center; text-decoration: none !important;">العودة للرئيسية</a>
+            </div>
+        </div>
+
+        <div class="sm-desktop-only">
+            <?php
+            if (!$is_logged_in) {
+                echo SM_Auth::shortcode_login();
+            } else {
+                $active_tab = isset($_GET['sm_tab']) ? sanitize_text_field($_GET['sm_tab']) : 'summary';
+                $stats = SM_DB::get_statistics();
+                include SM_PLUGIN_DIR . 'templates/public-admin-panel.php';
+            }
+            ?>
+        </div>
+        <?php
         return ob_get_clean();
     }
 

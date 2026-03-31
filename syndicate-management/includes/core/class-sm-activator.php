@@ -511,6 +511,30 @@ class SM_Activator {
             KEY group_id (group_id)
         ) $charset_collate;\n";
 
+        // Certificates Table
+        $table_name = $wpdb->prefix . 'sm_certificates';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            member_id mediumint(9) DEFAULT 0,
+            member_name varchar(255),
+            member_national_id varchar(14),
+            governorate varchar(50),
+            serial_number varchar(50) NOT NULL,
+            barcode_data text,
+            cert_type varchar(100) NOT NULL,
+            category varchar(100),
+            specialization varchar(100),
+            title varchar(255) NOT NULL,
+            issue_date date,
+            expiry_date date,
+            grade varchar(50),
+            created_by bigint(20),
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            UNIQUE KEY serial_number (serial_number),
+            KEY member_id (member_id)
+        ) $charset_collate;\n";
+
         // Branches Table
         $table_name = $wpdb->prefix . 'sm_branches_data';
         $sql .= "CREATE TABLE $table_name (
@@ -559,6 +583,7 @@ class SM_Activator {
         self::fix_membership_requests_schema();
         self::fix_notification_logs_schema();
         self::fix_prof_requests_schema();
+        self::fix_certificates_schema();
         self::setup_roles();
         self::seed_notification_templates();
         self::seed_publishing_templates();
@@ -652,6 +677,27 @@ class SM_Activator {
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
 
         $wpdb->query("ALTER TABLE $table_name MODIFY request_type varchar(100) NOT NULL");
+    }
+
+    private static function fix_certificates_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_certificates';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
+
+        $cols = [
+            'member_name' => 'varchar(255)',
+            'member_national_id' => 'varchar(14)',
+            'governorate' => 'varchar(50)',
+            'expiry_date' => 'date',
+            'grade' => 'varchar(50)'
+        ];
+
+        foreach ($cols as $col => $type) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $type");
+            }
+        }
     }
 
     private static function fix_membership_requests_schema() {
