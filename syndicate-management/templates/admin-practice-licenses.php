@@ -13,7 +13,7 @@ $current_date = date('Y-m-d');
 $soon_date = date('Y-m-d', strtotime('+30 days'));
 
 foreach ($members as $m) {
-    if (!empty($m->license_number)) {
+    if (!empty($m->license_number) && !$m->license_is_deleted) {
         $stats['total']++;
         if ($m->license_expiration_date < $current_date) {
             $stats['expired']++;
@@ -30,14 +30,26 @@ $registry = SM_DB::get_members([
     'search' => $search,
     'search_licenses' => true,
     'only_with_license' => true,
+    'license_is_deleted' => 0,
     'orderby' => 'license_expiration_date ASC',
     'limit' => -1
 ]);
+
+$deleted_registry = SM_DB::get_members([
+    'search' => $search,
+    'search_licenses' => true,
+    'license_is_deleted' => 1,
+    'orderby' => 'license_deleted_at DESC',
+    'limit' => -1
+]);
+
+$can_delete = current_user_can('manage_options') || current_user_can('sm_full_access') || current_user_can('sm_branch_access');
+$can_permanent_delete = current_user_can('manage_options') || current_user_can('sm_full_access');
 ?>
 
 <div class="sm-practice-licenses" dir="rtl">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h3 style="margin:0;">إدارة تصاريح مزاولة المهنة</h3>
+        <h3 style="margin:0;">قسم تراخيص المزاولة المهنية</h3>
         <div style="display:flex; gap:10px;">
             <button onclick="smOpenPrintCustomizer('practice_licenses')" class="sm-btn" style="background: #4a5568; width: auto;"><span class="dashicons dashicons-printer"></span> طباعة السجل</button>
             <button onclick="smOpenLicenseIssuanceModal()" class="sm-btn" style="width:auto;">+ إصدار / تجديد تصريح</button>
@@ -47,6 +59,59 @@ $registry = SM_DB::get_members([
     <div class="sm-tabs-wrapper" style="display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
         <button class="sm-tab-btn sm-active" onclick="smOpenInternalTab('license-registry', this)">سجل التراخيص</button>
         <button class="sm-tab-btn" onclick="smOpenInternalTab('permit-requests', this)">طلبات التصاريح والامتحانات</button>
+        <button class="sm-tab-btn" onclick="smOpenInternalTab('license-deleted', this)">التراخيص المحذوفة</button>
+    </div>
+
+    <div id="license-deleted" class="sm-internal-tab" style="display: none;">
+        <div style="background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #c53030; font-size: 14px;">
+            <span class="dashicons dashicons-warning"></span> تنبيه: التراخيص المحذوفة سيتم إزالتها نهائياً من النظام بعد مرور 3 أشهر من تاريخ الحذف.
+        </div>
+
+        <div class="sm-table-container">
+            <table class="sm-table sm-table-dense">
+                <thead>
+                    <tr>
+                        <th>العضو</th>
+                        <th>رقم الترخيص</th>
+                        <th>تاريخ الحذف</th>
+                        <th>الوقت المتبقي</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($deleted_registry)): ?>
+                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">لا توجد تراخيص محذوفة حالياً.</td></tr>
+                    <?php else: foreach ($deleted_registry as $m):
+                        $deleted_at = strtotime($m->license_deleted_at);
+                        $expiry_at = strtotime('+3 months', $deleted_at);
+                        $remaining = $expiry_at - time();
+                        $days_left = ceil($remaining / (60 * 60 * 24));
+                    ?>
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700;"><?php echo esc_html($m->name); ?></div>
+                            <div style="font-size: 11px; color: #718096;"><?php echo esc_html($m->national_id); ?></div>
+                        </td>
+                        <td style="font-weight: 800; color: var(--sm-primary-color);"><?php echo esc_html($m->license_number); ?></td>
+                        <td><?php echo date('Y-m-d', $deleted_at); ?></td>
+                        <td>
+                            <span class="sm-badge" style="background: #fffaf0; color: #975a16; border: 1px solid #fbd38d;">
+                                متبقي <?php echo $days_left; ?> يوم
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:8px;">
+                                <button onclick="smRestoreLicense(<?php echo $m->id; ?>)" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#38a169; padding: 0 10px;">استعادة</button>
+                                <?php if ($can_permanent_delete): ?>
+                                    <button onclick="smPermanentDeleteLicense(<?php echo $m->id; ?>)" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#e53e3e; padding: 0 10px;">حذف نهائي</button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div id="permit-requests" class="sm-internal-tab" style="display: none;">
@@ -129,6 +194,9 @@ $registry = SM_DB::get_members([
                         <div style="display:flex; gap:8px;">
                             <button onclick="smEditLicense(<?php echo $m->id; ?>)" class="sm-btn sm-btn-outline" style="height:28px; font-size:11px; width:auto; padding: 0 10px;">تعديل</button>
                             <a href="<?php echo admin_url('admin-ajax.php?action=sm_print_license&member_id='.$m->id); ?>" target="_blank" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#111F35; padding: 0 10px; display:flex; align-items:center;">طباعة</a>
+                            <?php if ($can_delete): ?>
+                                <button onclick="smDeleteLicense(<?php echo $m->id; ?>)" class="sm-btn" style="height:28px; font-size:11px; width:auto; background:#e53e3e; padding: 0 10px;">حذف</button>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -239,4 +307,58 @@ document.getElementById('sm-license-form').addEventListener('submit', function(e
         }
     }).catch(err => smHandleAjaxError(err));
 });
+
+function smDeleteLicense(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الترخيص؟ سيتم نقله إلى التراخيص المحذوفة.')) return;
+    const fd = new FormData();
+    fd.append('action', 'sm_soft_delete_license');
+    fd.append('id', id);
+    fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+    fetch(ajaxurl + '?action=sm_soft_delete_license', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            smShowNotification('تم حذف الترخيص بنجاح');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            smHandleAjaxError(res);
+        }
+    }).catch(err => smHandleAjaxError(err));
+}
+
+function smRestoreLicense(id) {
+    if (!confirm('هل أنت متأكد من استعادة هذا الترخيص؟')) return;
+    const fd = new FormData();
+    fd.append('action', 'sm_restore_license');
+    fd.append('id', id);
+    fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+    fetch(ajaxurl + '?action=sm_restore_license', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            smShowNotification('تم استعادة الترخيص بنجاح');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            smHandleAjaxError(res);
+        }
+    }).catch(err => smHandleAjaxError(err));
+}
+
+function smPermanentDeleteLicense(id) {
+    if (!confirm('تحذير: سيتم حذف بيانات هذا الترخيص نهائياً من النظام. هل أنت متأكد؟')) return;
+    const fd = new FormData();
+    fd.append('action', 'sm_permanent_delete_license');
+    fd.append('id', id);
+    fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+    fetch(ajaxurl + '?action=sm_permanent_delete_license', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            smShowNotification('تم حذف الترخيص نهائياً');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            smHandleAjaxError(res);
+        }
+    }).catch(err => smHandleAjaxError(err));
+}
 </script>

@@ -327,11 +327,12 @@ class SM_DB_System {
         $user = wp_get_current_user();
         $has_full_access = current_user_can('sm_full_access') || current_user_can('manage_options');
         $my_gov = get_user_meta($user->ID, 'sm_governorate', true);
+        $ignore_permissions = !empty($args['ignore_permissions']);
 
         $where = "1=1";
         $params = [];
 
-        if (!$has_full_access && $my_gov) {
+        if (!$ignore_permissions && !$has_full_access && $my_gov) {
             $where .= " AND slug = %s";
             $params[] = $my_gov;
         }

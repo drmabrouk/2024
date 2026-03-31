@@ -24,7 +24,6 @@ if ($import_results) {
 
             <?php if (!$is_deleted_view && SM_Settings::can_role_access(reset(wp_get_current_user()->roles), 'print_reports')): ?>
                 <button onclick="smOpenPrintCustomizer('members')" class="sm-btn" style="background: #4a5568; width: 160px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: 700;"><span class="dashicons dashicons-printer" style="font-size: 16px; margin-left: 8px;"></span> طباعة مخصصة</button>
-                <a href="<?php echo admin_url('admin-ajax.php?action=sm_print&print_type=id_card'); ?>" target="_blank" class="sm-btn sm-btn-accent" style="background: #27ae60; text-decoration:none; width: 160px; height: 42px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">طباعة كافة البطاقات</a>
             <?php endif; ?>
         </div>
     </div>
@@ -107,20 +106,34 @@ if ($import_results) {
     </div>
 
     <?php if (SM_Settings::can_role_access(reset(wp_get_current_user()->roles), 'add_member')): ?>
-    <!-- CSV Import Form -->
-    <div id="csv-import-form" style="display:none; background: #f8fafc; padding: 15px; border: 2px dashed #cbd5e0; border-radius: 12px; margin-bottom: 8px;">
-        <h3 style="margin-top:0; color:var(--sm-secondary-color);">استيراد الأعضاء من ملف CSV / Excel</h3>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">تأكد من أن الملف يحتوي على الأعمدة التالية بالترتيب: (الرقم القومي، الاسم، الدرجة الوظيفية، التخصص، الفرع، رقم الهاتف، البريد الإلكتروني)</p>
+    <!-- Excel Import Interface -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <div id="csv-import-form" style="display:none; background: #f8fafc; padding: 25px; border: 2px dashed #cbd5e0; border-radius: 15px; margin-bottom: 20px; box-shadow: var(--sm-shadow);">
+        <h3 style="margin-top:0; color:var(--sm-primary-color); font-weight: 800;">استيراد الأعضاء الذكي (Excel / XLSX / CSV)</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 20px; line-height: 1.6;">
+            يرجى اختيار ملف Excel يحتوي على بيانات الأعضاء. يدعم النظام الاستيراد المباشر مع دمج البيانات والتحقق التلقائي من الخيارات.<br>
+            <strong style="color:var(--sm-dark-color);">ترتيب الأعمدة المطلوب (A-Z):</strong> الاسم، رقم القيد، الرقم القومي، فرع القيد، الدرجة العلمية، القسم، تاريخ المؤهل، رقم العضوية، تاريخ البدء، مديونية العضوية، الرتبة، التخصص، رقم الترخيص، تاريخ الترخيص، مديونية الترخيص، اسم المنشأة، رقم المنشأة، فئة المنشأة، تاريخ منشأة، مديونية منشأة، البريد، الهاتف، محافظة الإقامة، المدينة، العنوان، ملاحظات.
+        </p>
 
-        <form method="post" enctype="multipart/form-data">
-            <?php wp_nonce_field('sm_admin_action', 'sm_admin_nonce'); ?>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <input type="file" name="member_csv_file" accept=".csv" required style="flex: 1; padding: 15px; background: white; border: 1px solid #e2e8f0; border-radius: 8px;">
-                <button type="submit" name="sm_import_members_csv" class="sm-btn" style="width: auto; background: #27ae60;">بدء الاستيراد الآن</button>
-                <button type="button" onclick="document.getElementById('csv-import-form').style.display='none'" class="sm-btn sm-btn-outline" style="width: auto;">إلغاء</button>
+        <div style="display: flex; gap: 15px; align-items: center; background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <input type="file" id="sm_excel_import_file" accept=".xlsx, .xls, .csv" style="flex: 1; padding: 10px;">
+            <button type="button" id="sm_start_excel_import" class="sm-btn" style="width: auto; background: #27ae60; padding: 0 30px; height: 45px;">بدء المعالجة والاستيراد</button>
+            <button type="button" onclick="document.getElementById('csv-import-form').style.display='none'" class="sm-btn sm-btn-outline" style="width: auto; height: 45px;">إغلاق</button>
+        </div>
+
+        <!-- Progress Overlay -->
+        <div id="import-progress-wrap" style="display:none; margin-top: 25px; background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
+                <span id="import-status-text" style="font-weight:700; font-size:13px; color:var(--sm-dark-color);">جاري تحليل الملف...</span>
+                <span id="import-percent-text" style="font-weight:800; color:var(--sm-primary-color);">0%</span>
             </div>
-        </form>
-        <div style="margin-top: 30px; font-size: 11px; color: #e53e3e;">* سيتم إنشاء حسابات مستخدمين تلقائياً لجميع الأعضاء المستوردين.</div>
+            <div style="height:10px; background:#f1f5f9; border-radius:10px; overflow:hidden;">
+                <div id="import-progress-bar" style="width:0%; height:100%; background:var(--sm-primary-color); transition: 0.3s;"></div>
+            </div>
+            <div id="import-log" style="margin-top:15px; max-height:150px; overflow-y:auto; font-size:11px; color:#64748b; line-height:1.5;"></div>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 11px; color: #e53e3e; font-weight: 700;">* سيتم استخدام الرقم القومي كاسم مستخدم وكلمة مرور افتراضية. في حال عدم وجود بريد إلكتروني، سيقوم النظام بإنشائه تلقائياً.</div>
     </div>
     <?php endif; ?>
 
@@ -302,7 +315,14 @@ if ($import_results) {
                         </div>
 
                         <div class="sm-form-group"><select name="university" class="sm-select add-cascading" required><option value="">-- اختر الجامعة --</option><?php foreach(SM_Settings::get_universities() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                        <div class="sm-form-group"><select name="faculty" class="sm-select add-cascading" required disabled><option value="">-- اختر الكلية --</option><?php foreach(SM_Settings::get_faculties() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                        <div class="sm-form-group">
+                            <select name="faculty" class="sm-select add-cascading" required disabled>
+                                <option value="">-- اختر الكلية --</option>
+                                <?php foreach(SM_Settings::get_faculties() as $k=>$v): ?>
+                                    <option value="<?php echo $k; ?>" <?php echo ($k === 'sports_science') ? 'selected' : ''; ?>><?php echo $v; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                         <div class="sm-form-group"><select name="department" class="sm-select add-cascading" required disabled><option value="">-- اختر القسم --</option><?php foreach(SM_Settings::get_departments() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
                         <div class="sm-form-group"><select name="specialization" class="sm-select add-cascading" required disabled><option value="">-- اختر التخصص --</option><?php foreach (SM_Settings::get_specializations() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
 
@@ -423,6 +443,92 @@ if ($import_results) {
 
     <script>
     (function() {
+        // EXCEL IMPORT LOGIC
+        document.getElementById('sm_start_excel_import')?.addEventListener('click', function() {
+            const fileInput = document.getElementById('sm_excel_import_file');
+            if (!fileInput.files.length) {
+                smShowNotification('يرجى اختيار ملف أولاً', true);
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            const btn = this;
+            const progressWrap = document.getElementById('import-progress-wrap');
+            const progressBar = document.getElementById('import-progress-bar');
+            const statusText = document.getElementById('import-status-text');
+            const percentText = document.getElementById('import-percent-text');
+            const importLog = document.getElementById('import-log');
+
+            btn.disabled = true;
+            progressWrap.style.display = 'block';
+            importLog.innerHTML = '<div>بدء قراءة الملف...</div>';
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: "A", defval: "" });
+
+                    // Skip header row if it looks like one (assuming Row 1 is header)
+                    const rowsToProcess = jsonData.slice(1);
+                    if (rowsToProcess.length === 0) {
+                        throw new Error('الملف المختار فارغ أو لا يحتوي على بيانات صحيحة.');
+                    }
+
+                    statusText.innerText = 'تم تحليل الملف. جاري إرسال البيانات للمعالجة...';
+                    importLog.innerHTML += `<div>تم العثور على ${rowsToProcess.length} سجل. يتم الآن الرفع للملقم...</div>`;
+
+                    // Process in batches of 50 to avoid timeout
+                    const batchSize = 50;
+                    let processed = 0;
+
+                    async function sendBatch(startIndex) {
+                        const batch = rowsToProcess.slice(startIndex, startIndex + batchSize);
+                        const fd = new FormData();
+                        fd.append('action', 'sm_import_members_json');
+                        fd.append('members_data', JSON.stringify(batch));
+                        fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+
+                        const response = await fetch(ajaxurl, { method: 'POST', body: fd });
+                        const res = await response.json();
+
+                        if (res.success) {
+                            processed += batch.length;
+                            const percent = Math.round((processed / rowsToProcess.length) * 100);
+                            progressBar.style.width = percent + '%';
+                            percentText.innerText = percent + '%';
+                            statusText.innerText = `جاري معالجة السجلات (${processed} من ${rowsToProcess.length})`;
+                            importLog.innerHTML += `<div style="color:#38a169;">Batch OK: +${batch.length} records</div>`;
+
+                            if (processed < rowsToProcess.length) {
+                                sendBatch(processed);
+                            } else {
+                                statusText.innerText = 'اكتمل الاستيراد بنجاح!';
+                                smShowNotification('اكتملت عملية الاستيراد بنجاح');
+                                setTimeout(() => location.reload(), 1500);
+                            }
+                        } else {
+                            throw new Error(res.data?.message || 'فشل معالجة الدفعة.');
+                        }
+                    }
+
+                    sendBatch(0).catch(err => {
+                        console.error(err);
+                        smHandleAjaxError(err);
+                        btn.disabled = false;
+                        statusText.innerText = 'حدث خطأ أثناء الاستيراد';
+                    });
+
+                } catch (err) {
+                    smShowNotification(err.message, true);
+                    btn.disabled = false;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
         window.smArchiveMember = function(id, name) {
             if (!confirm('هل أنت متأكد من نقل العضو "' + name + '" إلى الأرشيف (المحذوفات)؟')) return;
 

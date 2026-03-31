@@ -23,6 +23,10 @@
     color: var(--sm-dark-color);
 }
 
+.sm-admin-dashboard {
+    margin: 0;
+}
+
 .sm-btn, .sm-btn * {
     color: white !important;
 }

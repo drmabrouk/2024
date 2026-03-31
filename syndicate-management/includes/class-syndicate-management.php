@@ -45,6 +45,8 @@ class Syndicate_Management {
         require_once SM_PLUGIN_DIR . 'includes/modules/education/class-sm-education-manager.php';
         require_once SM_PLUGIN_DIR . 'includes/modules/system/class-sm-system-manager.php';
         require_once SM_PLUGIN_DIR . 'includes/modules/system/class-sm-print-manager.php';
+        require_once SM_PLUGIN_DIR . 'includes/modules/education/class-sm-certificate-manager.php';
+        require_once SM_PLUGIN_DIR . 'includes/database/class-sm-db-certificates.php';
 
         // Controllers
         require_once SM_PLUGIN_DIR . 'admin/class-sm-admin.php';
@@ -74,7 +76,7 @@ class Syndicate_Management {
             'sm_delete_member_ajax' => ['SM_Member_Manager', 'ajax_delete_member'],
             'sm_permanent_delete_member_ajax' => ['SM_Member_Manager', 'ajax_permanent_delete_member'],
             'sm_restore_member_ajax' => ['SM_Member_Manager', 'ajax_restore_member'],
-            'sm_import_members_csv' => ['SM_Member_Manager', 'ajax_import_members_csv'],
+            'sm_import_members_json' => ['SM_Member_Manager', 'ajax_import_members_json'],
             'sm_import_staffs_csv' => ['SM_Member_Manager', 'ajax_import_staffs_csv'],
             'sm_update_member_account_ajax' => ['SM_Member_Manager', 'ajax_update_member_account'],
             'sm_process_membership_request' => ['SM_Member_Manager', 'ajax_process_membership_request'],
@@ -117,10 +119,22 @@ class Syndicate_Management {
             // Licenses Module
             'sm_update_license_ajax' => ['SM_License_Manager', 'ajax_update_license'],
             'sm_update_facility_ajax' => ['SM_License_Manager', 'ajax_update_facility'],
+            'sm_soft_delete_facility' => ['SM_License_Manager', 'ajax_soft_delete_facility'],
+            'sm_restore_facility' => ['SM_License_Manager', 'ajax_restore_facility'],
+            'sm_permanent_delete_facility' => ['SM_License_Manager', 'ajax_permanent_delete_facility'],
+            'sm_soft_delete_license' => ['SM_License_Manager', 'ajax_soft_delete_license'],
+            'sm_restore_license' => ['SM_License_Manager', 'ajax_restore_license'],
+            'sm_permanent_delete_license' => ['SM_License_Manager', 'ajax_permanent_delete_license'],
             'sm_verify_document' => ['SM_License_Manager', 'ajax_verify_document'],
             'sm_verify_suggest' => ['SM_License_Manager', 'ajax_verify_suggest'],
             'sm_print_license' => ['SM_License_Manager', 'ajax_print_license'],
             'sm_print_facility' => ['SM_License_Manager', 'ajax_print_facility'],
+
+            // Certificates Module
+            'sm_add_certificate' => ['SM_Certificate_Manager', 'ajax_add_certificate'],
+            'sm_import_certificates_json' => ['SM_Certificate_Manager', 'ajax_import_certificates_json'],
+            'sm_delete_certificate' => ['SM_Certificate_Manager', 'ajax_delete_certificate'],
+            'sm_print_certificate' => ['SM_Certificate_Manager', 'ajax_print_certificate'],
 
             // Messaging Module
             'sm_send_message_ajax' => ['SM_Messaging_Manager', 'ajax_send_message'],
@@ -233,6 +247,7 @@ class Syndicate_Management {
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
         $this->loader->add_action('wp_footer', $plugin_public, 'inject_global_alerts');
         $this->loader->add_action('init', $plugin_public, 'register_shortcodes');
+        $this->loader->add_filter('the_content', $plugin_public, 'append_cover_v2_to_homepage');
         $this->loader->add_action('template_redirect', $plugin_public, 'handle_form_submission');
         $this->loader->add_action('wp_login_failed', $plugin_public, 'login_failed');
         $this->loader->add_action('wp_login', $plugin_public, 'log_successful_login', 10, 2);
@@ -242,6 +257,7 @@ class Syndicate_Management {
         $this->loader->add_action('sm_scheduled_backup', 'SM_Backup_Manager', 'handle_scheduled_backup');
 
         $this->loader->add_action('sm_daily_maintenance', 'SM_DB', 'delete_expired_messages');
+        $this->loader->add_action('sm_daily_maintenance', 'SM_DB', 'cleanup_deleted_licenses_and_facilities');
         $this->loader->add_action('sm_daily_maintenance', 'SM_Notifications', 'run_daily_checks');
     }
 

@@ -98,7 +98,7 @@ class SM_Finance {
         }
 
         // 2. Professional Practice License Dues
-        if (!empty($member->license_number) && !empty($member->license_expiration_date) && $member->license_expiration_date !== '0000-00-00') {
+        if (!empty($member->license_number) && !empty($member->license_expiration_date) && $member->license_expiration_date !== '0000-00-00' && empty($member->license_is_deleted)) {
             $exp = $member->license_expiration_date;
             $has_paid = ((int)$member->last_paid_license_year > 0);
 
@@ -131,7 +131,7 @@ class SM_Finance {
         }
 
         // 3. Facility License Dues
-        if (!empty($member->facility_number) && !empty($member->facility_license_expiration_date) && $member->facility_license_expiration_date !== '0000-00-00') {
+        if (!empty($member->facility_number) && !empty($member->facility_license_expiration_date) && $member->facility_license_expiration_date !== '0000-00-00' && empty($member->facility_is_deleted)) {
             $f_exp = $member->facility_license_expiration_date;
             if ($current_date > $f_exp) {
                 $f_cat = $member->facility_category ?: 'C';
@@ -171,7 +171,9 @@ class SM_Finance {
         }
 
         $total_paid = self::get_total_paid($member_id);
-        $balance = $total_owed - $total_paid;
+        $balance = $total_owed; // In this function, $total_owed was accumulating UNPAID dues
+
+        $total_owed_charged = $total_paid + $balance; // Total Claims = Paid + Unpaid
 
         // Pro-rate sub-balances if partially paid
         $membership_balance = $membership_owed;
@@ -195,7 +197,7 @@ class SM_Finance {
         }
 
         return [
-            'total_owed' => (float)$total_owed,
+            'total_owed' => (float)$total_owed_charged,
             'total_paid' => (float)$total_paid,
             'balance' => (float)$balance,
             'membership_balance' => (float)$membership_balance,
@@ -350,24 +352,23 @@ class SM_Finance {
         $cached = get_transient($cache_key);
         if ($cached !== false) return $cached;
 
-        $w_m = "1=1";
+        $w_m = "is_deleted = 0";
         $p_m = [];
         if (!$has_full) {
             if ($gov) {
-                $w_m = "governorate = %s";
+                $w_m .= " AND governorate = %s";
                 $p_m[] = $gov;
             } else {
                 return ['total_owed' => 0, 'total_paid' => 0, 'total_balance' => 0, 'total_penalty' => 0];
             }
         }
 
-        $j_p = "";
-        $w_p = "1=1";
+        $j_p = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
+        $w_p = "m.is_deleted = 0";
         $p_p = [];
         if (!$has_full) {
             if ($gov) {
-                $j_p = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
-                $w_p = "m.governorate = %s";
+                $w_p .= " AND m.governorate = %s";
                 $p_p[] = $gov;
             } else {
                 $w_p = "1=0";
@@ -375,7 +376,7 @@ class SM_Finance {
         }
 
         $paid = !empty($p_p) ? $wpdb->get_var($wpdb->prepare("SELECT SUM(p.amount) FROM {$wpdb->prefix}sm_payments p $j_p WHERE $w_p", ...$p_p)) : $wpdb->get_var("SELECT SUM(p.amount) FROM {$wpdb->prefix}sm_payments p $j_p WHERE $w_p");
-        $paid = $paid ?: 0;
+        $paid = (float)($paid ?: 0);
 
         $members = !empty($p_m) ? $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sm_members WHERE $w_m", ...$p_m)) : $wpdb->get_results("SELECT * FROM {$wpdb->prefix}sm_members WHERE $w_m");
 
@@ -383,11 +384,11 @@ class SM_Finance {
             self::prefetch_data(array_map(function($m) { return $m->id; }, $members));
         }
 
-        $owed = 0;
+        $total_unpaid = 0;
         $penalty = 0;
         foreach ($members as $m) {
             $dues = self::calculate_member_dues($m);
-            $owed += $dues['total_owed'];
+            $total_unpaid += $dues['balance'];
             foreach ($dues['breakdown'] as $i) {
                 if (!empty($i['penalty'])) {
                     $penalty += $i['penalty'];
@@ -395,9 +396,9 @@ class SM_Finance {
             }
         }
         $stats = [
-            'total_owed' => (float)$owed,
-            'total_paid' => (float)$paid,
-            'total_balance' => max(0, (float)$owed - (float)$paid),
+            'total_owed' => $paid + (float)$total_unpaid, // Total Claims = Paid + Unpaid
+            'total_paid' => $paid,
+            'total_balance' => (float)$total_unpaid,
             'total_penalty' => (float)$penalty
         ];
 

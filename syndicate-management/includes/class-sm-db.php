@@ -120,6 +120,34 @@ class SM_DB {
         return SM_DB_Members::process_update_request($id, $status);
     }
 
+    public static function soft_delete_facility($id) {
+        return SM_DB_Members::soft_delete_facility($id);
+    }
+
+    public static function restore_facility($id) {
+        return SM_DB_Members::restore_facility($id);
+    }
+
+    public static function permanent_delete_facility($id) {
+        return SM_DB_Members::permanent_delete_facility($id);
+    }
+
+    public static function soft_delete_license($id) {
+        return SM_DB_Members::soft_delete_license($id);
+    }
+
+    public static function restore_license($id) {
+        return SM_DB_Members::restore_license($id);
+    }
+
+    public static function permanent_delete_license($id) {
+        return SM_DB_Members::permanent_delete_license($id);
+    }
+
+    public static function cleanup_deleted_licenses_and_facilities() {
+        return SM_DB_Members::cleanup_deleted_licenses_and_facilities();
+    }
+
     public static function count_pending_update_requests() {
         return SM_DB_Members::count_pending_update_requests();
     }
@@ -468,6 +496,27 @@ class SM_DB {
 
     public static function get_backup_data() {
         return SM_DB_System::get_backup_data();
+    }
+
+    // Certificate Delegation
+    public static function add_certificate($data) {
+        return SM_DB_Certificates::add_certificate($data);
+    }
+
+    public static function get_certificates($args = []) {
+        return SM_DB_Certificates::get_certificates($args);
+    }
+
+    public static function get_certificate_by_id($id) {
+        return SM_DB_Certificates::get_certificate_by_id($id);
+    }
+
+    public static function get_certificate_by_serial($s) {
+        return SM_DB_Certificates::get_certificate_by_serial($s);
+    }
+
+    public static function delete_certificate($id) {
+        return SM_DB_Certificates::delete_certificate($id);
     }
 
     public static function restore_backup($j) {

@@ -84,13 +84,13 @@ class SM_DB_Finance {
         $stats = array();
         $params = [];
 
-        $where_member = "1=1";
+        $where_member = "is_deleted = 0";
         if ($target_gov) {
-            $where_member = "governorate = %s";
+            $where_member .= " AND governorate = %s";
             $params[] = $target_gov;
         } elseif (!$has_full_access) {
             if ($my_gov) {
-                $where_member = "governorate = %s";
+                $where_member .= " AND governorate = %s";
                 $params[] = $my_gov;
             } else {
                 $where_member = "1=0";
@@ -115,14 +115,13 @@ class SM_DB_Finance {
             '%"sm_general_officer"%'
         ));
 
-        // Total Revenue
-        $join_member_rev = "";
-        $where_rev = "1=1";
+        // Total Revenue (Exclude payments from deleted members)
+        $join_member_rev = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
+        $where_rev = "m.is_deleted = 0";
         $rev_params = [];
         if (!$has_full_access) {
             if ($my_gov) {
-                $join_member_rev = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
-                $where_rev = "m.governorate = %s";
+                $where_rev .= " AND m.governorate = %s";
                 $rev_params[] = $my_gov;
             } else {
                 $where_rev = "1=0";
@@ -135,13 +134,12 @@ class SM_DB_Finance {
             $stats['total_revenue'] = $wpdb->get_var($query_rev) ?: 0;
         }
 
-        // Financial Trends (Last 30 Days)
-        $join_member = "";
-        $where_finance = "payment_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+        // Financial Trends (Last 30 Days, Exclude deleted members)
+        $join_member = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
+        $where_finance = "m.is_deleted = 0 AND payment_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
         $trend_params = [];
         if (!$has_full_access) {
             if ($my_gov) {
-                $join_member = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
                 $where_finance .= " AND m.governorate = %s";
                 $trend_params[] = $my_gov;
             } else {

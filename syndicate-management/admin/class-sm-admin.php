@@ -61,6 +61,15 @@ class SM_Admin {
 
         add_submenu_page(
             'sm-dashboard',
+            'إدارة الشهادات',
+            'إدارة الشهادات',
+            'sm_manage_members',
+            'sm-certificates',
+            array($this, 'display_certificates_page')
+        );
+
+        add_submenu_page(
+            'sm-dashboard',
             'إعدادات النظام',
             'إعدادات النظام',
             'sm_manage_system',
@@ -101,6 +110,11 @@ class SM_Admin {
 
     public function display_branches_page() {
         $_GET['sm_tab'] = 'branches';
+        $this->display_settings();
+    }
+
+    public function display_certificates_page() {
+        $_GET['sm_tab'] = 'certificates';
         $this->display_settings();
     }
 

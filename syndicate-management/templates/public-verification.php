@@ -8,35 +8,39 @@ $show_facility = get_option('sm_verify_show_facility', 1);
 ?>
 <div class="sm-verify-portal" dir="rtl" style="max-width: 950px; margin: 30px auto; padding: 0 15px; font-family: 'Rubik', sans-serif;">
 
-    <!-- Minimal Professional Header -->
-    <div style="text-align: center; margin-bottom: 30px;" class="sm-portal-header">
-        <h2 style="margin: 0; font-weight: 900; font-size: 1.6em; color: var(--sm-dark-color); border: none; padding: 0; letter-spacing: -0.5px;"><?php echo esc_html(get_option('sm_verify_title', 'بوابة التحقق المهني الموحدة')); ?></h2>
-        <div style="width: 30px; height: 3px; background: <?php echo esc_attr($accent_color); ?>; margin: 8px auto; border-radius: 2px;"></div>
-        <p style="color: #64748b; font-size: 13px; margin-top: 5px; font-weight: 500; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.4;"><?php echo esc_html(get_option('sm_verify_desc', 'استعلام فوري ومعتمد من السجلات الرسمية للنقابة لخدمة الأعضاء والمؤسسات.')); ?></p>
+    <!-- Enhanced Professional Header -->
+    <div style="text-align: center; margin-bottom: 40px;" class="sm-portal-header">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: <?php echo esc_attr($accent_color); ?>10; border-radius: 20px; margin-bottom: 20px;">
+            <span class="dashicons dashicons-shield" style="font-size: 32px; width: 32px; height: 32px; color: <?php echo esc_attr($accent_color); ?>;"></span>
+        </div>
+        <h2 style="margin: 0; font-weight: 900; font-size: 2em; color: var(--sm-dark-color); border: none; padding: 0; letter-spacing: -0.5px;"><?php echo esc_html(get_option('sm_verify_title', 'بوابة التحقق المهني الموحدة')); ?></h2>
+        <div style="width: 40px; height: 4px; background: <?php echo esc_attr($accent_color); ?>; margin: 12px auto; border-radius: 2px;"></div>
+        <p style="color: #64748b; font-size: 14px; margin-top: 10px; font-weight: 500; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;"><?php echo esc_html(get_option('sm_verify_desc', 'استعلام فوري ومعتمد من السجلات الرسمية للنقابة لخدمة الأعضاء والمؤسسات.')); ?></p>
     </div>
 
-    <!-- Compact Unified Search Control Center -->
-    <div style="background: #fff; padding: 5px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); margin-bottom: 20px; position: relative;" id="sm-search-container">
+    <!-- Enhanced Unified Search Control Center -->
+    <div style="background: #fff; padding: 8px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); margin-bottom: 25px; position: relative;" id="sm-search-container">
         <form id="sm-verify-form" style="margin: 0;">
-            <div style="display: flex; gap: 5px; align-items: stretch;">
-                <div style="width: 170px; flex-shrink: 0;">
-                    <select id="sm-verify-type" class="sm-select" style="height: 42px; border-radius: 10px; border: 1px solid #f1f5f9; background: #f8fafc; font-weight: 700; width: 100%; font-size: 12.5px; padding: 0 10px; cursor: pointer; transition: 0.3s; color: var(--sm-dark-color); outline: none;">
-                        <option value="auto">كشف تلقائي ذكي</option>
-                        <option value="national_id">الرقم القومي (14 رقم)</option>
-                        <option value="membership">رقم القيد النقابي</option>
-                        <option value="practice">ترخيص مزاولة المهنة</option>
-                        <option value="facility">ترخيص المنشأة</option>
-                        <option value="tracking">كود تتبع الطلبات</option>
+            <div style="display: flex; gap: 8px; align-items: stretch;">
+                <div style="width: 200px; flex-shrink: 0;">
+                    <select id="sm-verify-type" class="sm-select" style="height: 50px; border-radius: 15px; border: 1px solid #f1f5f9; background: #f8fafc; font-weight: 700; width: 100%; font-size: 13px; padding: 0 15px; cursor: pointer; transition: 0.3s; color: var(--sm-dark-color); outline: none;">
+                        <option value="auto">🔍 كشف تلقائي ذكي</option>
+                        <option value="national_id">🆔 الرقم القومي</option>
+                        <option value="membership">💳 رقم القيد النقابي</option>
+                        <option value="practice">📜 ترخيص مزاولة المهنة</option>
+                        <option value="facility">🏠 ترخيص المنشأة</option>
+                        <option value="certificate">🎓 شهادات ودورات تدريبية</option>
+                        <option value="tracking">📦 كود تتبع الطلبات</option>
                     </select>
                 </div>
                 <div style="flex: 1; position: relative;">
                     <input type="text" id="sm-verify-value" class="sm-input" autocomplete="off"
                            placeholder="أدخل البيانات المراد التحقق منها..."
-                           style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #f1f5f9; background: #f8fafc; padding: 0 15px; font-weight: 600; font-size: 13.5px; transition: 0.3s; color: var(--sm-dark-color); outline: none;">
-                    <div id="sm-verify-suggestions" class="sm-suggestions-box" style="display: none; position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; z-index: 1000; box-shadow: 0 10px 20px -10px rgba(0,0,0,0.1); overflow: hidden;"></div>
+                           style="width: 100%; height: 50px; border-radius: 15px; border: 1px solid #f1f5f9; background: #f8fafc; padding: 0 20px; font-weight: 600; font-size: 15px; transition: 0.3s; color: var(--sm-dark-color); outline: none;">
+                    <div id="sm-verify-suggestions" class="sm-suggestions-box" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 15px; z-index: 1000; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; border-top: none;"></div>
                 </div>
-                <button type="submit" class="sm-btn" style="height: 42px; padding: 0 25px; font-weight: 800; font-size: 13.5px; border-radius: 10px; background: var(--sm-dark-color); color: #fff; border: none; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 6px;">
-                    <span class="dashicons dashicons-search" style="font-size: 16px; width: 16px; height: 16px;"></span> استعلام
+                <button type="submit" class="sm-btn" style="height: 50px; padding: 0 35px; font-weight: 800; font-size: 15px; border-radius: 15px; background: <?php echo esc_attr($accent_color); ?>; color: #fff; border: none; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px 0 <?php echo esc_attr($accent_color); ?>40;">
+                    استعلام <span class="dashicons dashicons-search" style="font-size: 18px; width: 18px; height: 18px;"></span>
                 </button>
             </div>
         </form>
@@ -51,9 +55,9 @@ $show_facility = get_option('sm_verify_show_facility', 1);
     </div>
 
     <!-- Loading State -->
-    <div id="sm-verify-loading" style="display: none; text-align: center; padding: 40px 0;">
-        <div class="sm-loader-ring"></div>
-        <p style="color: #64748b; font-size: 12px; font-weight: 700; margin-top: 10px;">جاري التدقيق الرقمي...</p>
+    <div id="sm-verify-loading" style="display: none; text-align: center; padding: 60px 0;">
+        <div class="sm-loader-ring" style="width: 48px; height: 48px; border-width: 3px;"></div>
+        <p style="color: #64748b; font-size: 14px; font-weight: 700; margin-top: 20px; letter-spacing: 0.5px;">جاري الفحص والتدقيق في السجلات الرسمية...</p>
     </div>
 
     <!-- Search Results Output -->
@@ -89,39 +93,40 @@ $show_facility = get_option('sm_verify_show_facility', 1);
 
 .sm-verify-card {
     background: #fff;
-    border-radius: 10px;
+    border-radius: 16px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
-    transition: 0.2s;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-.sm-verify-card:hover { border-color: #cbd5e1; }
+.sm-verify-card:hover { border-color: <?php echo esc_attr($accent_color); ?>50; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
 
 .sm-verify-card-header {
-    padding: 8px 12px;
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #f1f5f9;
-    background: #fafafa;
+    background: #fcfcfc;
 }
-.sm-verify-card-label { font-weight: 800; font-size: 10px; color: #64748b; }
+.sm-verify-card-label { font-weight: 800; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
 
-.sm-verify-card-body { padding: 12px; flex: 1; }
+.sm-verify-card-body { padding: 20px; flex: 1; }
 
 .sm-result-item-compact {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 0;
-    border-bottom: 1px dashed #f1f5f9;
+    padding: 10px 0;
+    border-bottom: 1px solid #f8fafc;
 }
 .sm-result-item-compact:last-child { border-bottom: none; }
-.sm-result-key { font-size: 9.5px; color: #94a3b8; font-weight: 700; }
-.sm-result-val { font-weight: 700; color: var(--sm-dark-color); font-size: 11.5px; text-align: left; }
+.sm-result-key { font-size: 11px; color: #94a3b8; font-weight: 700; }
+.sm-result-val { font-weight: 700; color: var(--sm-dark-color); font-size: 13px; text-align: left; }
 
-.sm-badge-status { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; }
+.sm-badge-status { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; }
 .sm-badge-success { background: #dcfce7; color: #15803d; }
 .sm-badge-warning { background: #fef3c7; color: #b45309; }
 .sm-badge-danger { background: #fee2e2; color: #b91c1c; }
@@ -217,16 +222,31 @@ $show_facility = get_option('sm_verify_show_facility', 1);
         clearTimeout(typingTimer);
         const val = $(this).val().trim();
         if (val.length < 3) { suggestions.hide(); return; }
+
+        // Instant visual validation feedback
+        const type = typeSelect.val();
+        if (type === 'national_id') {
+            if (/^[0-9]{1,14}$/.test(val)) input.css('border-color', ''); else input.css('border-color', '#feb2b2');
+        }
+
         typingTimer = setTimeout(() => {
-            fetch(`${ajaxurl}?action=sm_verify_suggest&query=${val}&type=${typeSelect.val()}`)
+            const nonce = '<?php echo wp_create_nonce("sm_contact_action"); ?>';
+            fetch(`${ajaxurl}?action=sm_verify_suggest&query=${val}&type=${typeSelect.val()}&nonce=${nonce}`)
             .then(r => r.json()).then(res => {
                 if (res.success && res.data && res.data.length > 0) {
                     suggestions.empty().show();
-                    res.data.forEach(item => suggestions.append(`<div class="sm-verify-suggestion-item" onclick="smSelectSuggestion('${item}')">${item}</div>`));
+                    res.data.forEach(item => {
+                        const icon = isNumeric(item) ? '🆔' : '👤';
+                        suggestions.append(`<div class="sm-verify-suggestion-item" onclick="smSelectSuggestion('${item}')">
+                            <span style="margin-left:8px; opacity:0.6;">${icon}</span>${item}
+                        </div>`);
+                    });
                 } else suggestions.hide();
             });
         }, 300);
     });
+
+    function isNumeric(n) { return !isNaN(parseFloat(n)) && isFinite(n); }
 
     window.smSelectSuggestion = val => { input.val(val); suggestions.hide(); form.submit(); };
     $(document).on('click', e => { if (!$(e.target).closest('#sm-verify-form').length) suggestions.hide(); });
@@ -240,7 +260,12 @@ $show_facility = get_option('sm_verify_show_facility', 1);
             return;
         }
         resultsArea.hide().empty(); loading.show(); suggestions.hide();
-        const fd = new FormData(); fd.append('action', 'sm_verify_document'); fd.append('search_value', val); fd.append('search_type', type);
+        const fd = new FormData();
+        fd.append('action', 'sm_verify_document');
+        fd.append('search_value', val);
+        fd.append('search_type', type);
+        fd.append('nonce', '<?php echo wp_create_nonce("sm_contact_action"); ?>');
+
         fetch(ajaxurl + '?action=sm_verify_document', { method: 'POST', body: fd }).then(r => r.json()).then(res => {
             loading.hide();
             if (res.success && res.data) { renderResults(res.data); resultsArea.fadeIn(); }
@@ -257,6 +282,7 @@ $show_facility = get_option('sm_verify_show_facility', 1);
             membership: blocks.filter(b => b.type === 'membership'),
             practice: blocks.filter(b => b.type === 'practice'),
             facility: blocks.filter(b => b.type === 'facility'),
+            certificate: blocks.filter(b => b.type === 'certificate'),
             tracking: blocks.filter(b => b.type === 'tracking')
         };
 
@@ -264,6 +290,7 @@ $show_facility = get_option('sm_verify_show_facility', 1);
         if (groups.membership.length > 0 && config.show_membership) renderSection('السجل النقابي', groups.membership.map(b => getMembershipCard(b.membership)));
         if (groups.practice.length > 0 && config.show_practice) renderSection('تراخيص المزاولة', groups.practice.map(b => getPracticeCard(b.practice)));
         if (groups.facility.length > 0 && config.show_facility) renderSection('تراخيص المنشآت', groups.facility.map(b => getFacilityCard(b.facility)));
+        if (groups.certificate.length > 0) renderSection('شهادات ودورات معتمدة', groups.certificate.map(b => getCertificateCard(b.certificate)));
         if (groups.tracking.length > 0) renderSection('الطلبات الرقمية', groups.tracking.map(b => getTrackingCard(b.tracking)));
 
         resultsArea.append(`<div style="text-align: center; margin-top: 20px;">
@@ -280,14 +307,43 @@ $show_facility = get_option('sm_verify_show_facility', 1);
     }
 
     function getProfileCard(o) {
-        return `<div class="sm-verify-card">
-            <div class="sm-verify-card-header"><div class="sm-verify-card-label">بيانات العضو</div><div class="sm-badge-status sm-badge-success">${config.success_msg}</div></div>
+        return `<div class="sm-verify-card" style="border-right: 5px solid <?php echo esc_attr($accent_color); ?>;">
+            <div class="sm-verify-card-header">
+                <div class="sm-verify-card-label">باقة الهوية الرقمية</div>
+                <div class="sm-badge-status sm-badge-success">
+                    <span class="dashicons dashicons-yes-alt" style="font-size: 14px; width: 14px; height: 14px; vertical-align: text-top; margin-left: 4px;"></span>
+                    ${config.success_msg}
+                </div>
+            </div>
             <div class="sm-verify-card-body">
-                <h3 style="margin: 0 0 8px; font-size: 1em; color: var(--sm-dark-color); font-weight: 900;">${o.name}</h3>
+                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+                    <div style="width: 50px; height: 50px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                        <span class="dashicons dashicons-admin-users" style="font-size: 24px; width: 24px; height: 24px;"></span>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.2em; color: var(--sm-dark-color); font-weight: 900;">${o.name}</h3>
+                        <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-top: 2px;">${o.role_label}</div>
+                    </div>
+                </div>
                 <div class="sm-result-item-compact"><span class="sm-result-key">الرقم القومي</span><span class="sm-result-val">********${o.national_id.substr(-6)}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الدرجة</span><span class="sm-result-val">${o.grade}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">التخصص</span><span class="sm-result-val">${o.specialization}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الفرع</span><span class="sm-result-val">${o.branch}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الدرجة المهنية</span><span class="sm-result-val">${o.grade}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">التخصص الدقيق</span><span class="sm-result-val">${o.specialization}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الفرع النقابي</span><span class="sm-result-val">${o.branch}</span></div>
+            </div>
+        </div>`;
+    }
+
+    function getCertificateCard(c) {
+        const ok = !c.expiry_date || c.expiry_date === '---' || new Date(c.expiry_date) >= new Date();
+        return `<div class="sm-verify-card">
+            <div class="sm-verify-card-header"><div class="sm-verify-card-label">شهادة / دورة تدريبية</div><div class="sm-badge-status ${ok ? 'sm-badge-success' : 'sm-badge-danger'}">${ok ? 'شهادة معتمدة' : 'شهادة منتهية'}</div></div>
+            <div class="sm-verify-card-body">
+                <div class="sm-result-item-compact" style="border-bottom:1px solid #f1f5f9; padding-bottom:12px; margin-bottom:8px;"><span class="sm-result-key">اسم الدورة / الشهادة</span><span class="sm-result-val" style="font-size: 1.1em; color: var(--sm-primary-color);">${c.course}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الرقم المسلسل</span><span class="sm-result-val">${c.serial}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الاسم المسجل</span><span class="sm-result-val">${c.member}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">تاريخ الإصدار</span><span class="sm-result-val">${c.issue_date}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">التقدير / النتيجة</span><span class="sm-result-val">${c.grade}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الفرع المصدر</span><span class="sm-result-val">${c.branch}</span></div>
             </div>
         </div>`;
     }
@@ -295,11 +351,11 @@ $show_facility = get_option('sm_verify_show_facility', 1);
     function getMembershipCard(m) {
         const v = !m.expiry || m.expiry === '---' || new Date(m.expiry) >= new Date();
         return `<div class="sm-verify-card">
-            <div class="sm-verify-card-header"><div class="sm-verify-card-label">القيد النقابي</div><div class="sm-badge-status ${v ? 'sm-badge-success' : 'sm-badge-danger'}">${v ? 'سارية' : 'منتهية'}</div></div>
+            <div class="sm-verify-card-header"><div class="sm-verify-card-label">بيانات القيد النقابي</div><div class="sm-badge-status ${v ? 'sm-badge-success' : 'sm-badge-danger'}">${v ? 'سارية الصلاحية' : 'منتهية الصلاحية'}</div></div>
             <div class="sm-verify-card-body">
-                <div class="sm-result-item-compact"><span class="sm-result-key">رقم القيد</span><span class="sm-result-val" style="color:var(--sm-primary-color);">${m.number}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الانتهاء</span><span class="sm-result-val">${m.expiry || '---'}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">السداد</span><span class="sm-result-val">${m.status}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">رقم القيد</span><span class="sm-result-val" style="color:var(--sm-primary-color); font-size: 1.1em;">${m.number}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">تاريخ انتهاء الكارنيه</span><span class="sm-result-val">${m.expiry || '---'}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الحالة المالية للسداد</span><span class="sm-result-val">${m.status}</span></div>
             </div>
         </div>`;
     }
@@ -307,23 +363,23 @@ $show_facility = get_option('sm_verify_show_facility', 1);
     function getPracticeCard(p) {
         const v = !p.expiry || p.expiry === '---' || new Date(p.expiry) >= new Date();
         return `<div class="sm-verify-card">
-            <div class="sm-verify-card-header"><div class="sm-verify-card-label">ترخيص المزاولة</div><div class="sm-badge-status ${v ? 'sm-badge-success' : 'sm-badge-danger'}">${v ? 'سارٍ' : 'منتهٍ'}</div></div>
+            <div class="sm-verify-card-header"><div class="sm-verify-card-label">ترخيص مزاولة المهنة</div><div class="sm-badge-status ${v ? 'sm-badge-success' : 'sm-badge-danger'}">${v ? 'ترخيص سارٍ' : 'ترخيص منتهٍ'}</div></div>
             <div class="sm-verify-card-body">
-                <div class="sm-result-item-compact"><span class="sm-result-key">رقم الترخيص</span><span class="sm-result-val">${p.number}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الإصدار</span><span class="sm-result-val">${p.issue_date || '---'}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الصلاحية</span><span class="sm-result-val">${p.expiry || '---'}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">رقم الترخيص المعتمد</span><span class="sm-result-val" style="font-size: 1.1em;">${p.number}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">تاريخ إصدار الترخيص</span><span class="sm-result-val">${p.issue_date || '---'}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">تاريخ انتهاء الصلاحية</span><span class="sm-result-val">${p.expiry || '---'}</span></div>
             </div>
         </div>`;
     }
 
     function getFacilityCard(f) {
         return `<div class="sm-verify-card">
-            <div class="sm-verify-card-header"><div class="sm-verify-card-label">ترخيص المنشأة</div><div class="sm-badge-status sm-badge-success">مرخصة</div></div>
+            <div class="sm-verify-card-header"><div class="sm-verify-card-label">بيانات ترخيص المنشأة</div><div class="sm-badge-status sm-badge-success">منشأة مرخصة</div></div>
             <div class="sm-verify-card-body">
-                <div class="sm-result-item-compact" style="border-bottom:1px solid #f1f5f9; margin-bottom:4px;"><span class="sm-result-key">المنشأة</span><span class="sm-result-val">${f.name}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">رقم الترخيص</span><span class="sm-result-val">${f.number}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الفئة</span><span class="sm-result-val">(${f.category})</span></div>
-                <div class="sm-result-item-compact" style="flex-direction:column; align-items:flex-start;"><span class="sm-result-key">العنوان</span><span class="sm-result-val" style="font-size:10px; margin-top:2px;">${f.address}</span></div>
+                <div class="sm-result-item-compact" style="border-bottom:1px solid #f1f5f9; padding-bottom:12px; margin-bottom:8px;"><span class="sm-result-key">اسم المنشأة الرياضية</span><span class="sm-result-val" style="font-size: 1.1em; color: var(--sm-primary-color);">${f.name}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">رقم ترخيص المنشأة</span><span class="sm-result-val">${f.number}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الفئة التصنيفية للمنشأة</span><span class="sm-result-val">${f.category}</span></div>
+                <div style="margin-top:12px;"><span class="sm-result-key" style="display:block; margin-bottom:4px;">العنوان المسجل</span><span class="sm-result-val" style="font-size:11px; line-height:1.6; display:block;">${f.address}</span></div>
             </div>
         </div>`;
     }
@@ -331,18 +387,23 @@ $show_facility = get_option('sm_verify_show_facility', 1);
     function getTrackingCard(t) {
         const ok = t.status === 'تم القبول والتفعيل' || t.status === 'مكتمل / معتمد';
         return `<div class="sm-verify-card">
-            <div class="sm-verify-card-header"><div class="sm-verify-card-label">حالة الطلب</div><div class="sm-badge-status ${ok ? 'sm-badge-success' : 'sm-badge-warning'}">${t.status}</div></div>
+            <div class="sm-verify-card-header"><div class="sm-verify-card-label">تتبع حالة الطلب الرقمي</div><div class="sm-badge-status ${ok ? 'sm-badge-success' : 'sm-badge-warning'}">${t.status}</div></div>
             <div class="sm-verify-card-body">
-                <div class="sm-result-item-compact"><span class="sm-result-key">الخدمة</span><span class="sm-result-val">${t.service}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الكود</span><span class="sm-result-val">${t.id}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">التاريخ</span><span class="sm-result-val">${t.date}</span></div>
-                <div class="sm-result-item-compact"><span class="sm-result-key">الفرع</span><span class="sm-result-val">${t.branch}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">نوع الخدمة المطلوبة</span><span class="sm-result-val">${t.service}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">كود تتبع العملية</span><span class="sm-result-val" style="color:var(--sm-primary-color);">${t.id}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">تاريخ تقديم الطلب</span><span class="sm-result-val">${t.date}</span></div>
+                <div class="sm-result-item-compact"><span class="sm-result-key">الفرع المختص</span><span class="sm-result-val">${t.branch}</span></div>
             </div>
         </div>`;
     }
 
     function renderError(msg) {
-        resultsArea.append(`<div class="sm-verify-card" style="border-style: dashed; border-color: #feb2b2; text-align: center; padding: 15px;"><p style="color: #c53030; font-weight: 800; margin: 0; font-size:12px;">${msg}</p></div>`);
+        resultsArea.append(`<div style="background: #fff5f5; border: 2px dashed #feb2b2; border-radius: 20px; padding: 40px; text-align: center; animation: smSlideUp 0.3s ease-out;">
+            <div style="font-size: 40px; margin-bottom: 15px;">🔍</div>
+            <h3 style="margin: 0 0 10px; color: #c53030; font-weight: 900;">لم يتم العثور على نتائج</h3>
+            <p style="color: #9b2c2c; font-weight: 500; font-size: 14px; margin: 0;">${msg}</p>
+            <div style="margin-top: 20px; font-size: 12px; color: #64748b;">نصيحة: تأكد من كتابة البيانات بشكل صحيح أو جرب البحث بطريقة أخرى.</div>
+        </div>`);
     }
 
 })(jQuery);

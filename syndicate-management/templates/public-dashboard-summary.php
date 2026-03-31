@@ -482,7 +482,7 @@ function smExitTest() {
     include SM_PLUGIN_DIR . 'templates/component-stat-card.php';
 
     // Stat Box 2: Practice Licenses
-    $icon = 'dashicons-id-alt'; $label = 'تصاريح المزاولة'; $value = number_format($stats['total_practice_licenses'] ?? 0); $color = '#dd6b20'; $url = add_query_arg('sm_tab', 'practice-licenses');
+    $icon = 'dashicons-id-alt'; $label = 'تصاريح تراخيص المزاولة'; $value = number_format($stats['total_practice_licenses'] ?? 0); $color = '#dd6b20'; $url = add_query_arg('sm_tab', 'practice-licenses');
     include SM_PLUGIN_DIR . 'templates/component-stat-card.php';
 
     // Stat Box 3: Facility Licenses

@@ -29,17 +29,17 @@ class SM_Settings {
             'tab_members' => 'إدارة الأعضاء',
             'tab_finance' => 'الاستحقاقات المالية',
             'tab_financial_logs' => 'سجل العمليات المالية',
-            'tab_practice_licenses' => 'تصاريح المزاولة',
+            'tab_practice_licenses' => 'قسم تراخيص المزاولة المهنية',
             'tab_facility_licenses' => 'تسجيل المنشآت',
             'tab_staffs' => 'إدارة مستخدمي النظام',
-            'tab_surveys' => 'اختبارات الممارسة المهنية',
+            'tab_surveys' => 'قسم امتحانات التراخيص',
             'tab_global_settings' => 'إعدادات النظام',
             'tab_update_requests' => 'طلبات التحديث',
             'tab_my_profile' => 'ملفي الشخصي',
-            'tab_branches' => 'إدارة فروع النقابة',
+            'tab_branches' => 'قسم فروع النقابة',
             'tab_issue_document' => 'إصدار المستندات',
-            'tab_digital_services' => 'الخدمات الرقمية',
-            'tab_global_archive' => 'الأرشيف الرقمي العام',
+            'tab_digital_services' => 'إدارة الخدمات الرقمية',
+            'tab_global_archive' => 'قسم الأرشيف الرقمي',
             'field_specialty' => 'التخصص المهني',
             'field_grade' => 'الدرجة الوظيفية',
             'field_rank' => 'الرتبة النقابية'
@@ -439,5 +439,24 @@ class SM_Settings {
         if (!isset($perms[$role])) return false;
 
         return in_array($module_or_action, $perms[$role]['modules']) || in_array($module_or_action, $perms[$role]['actions']);
+    }
+
+    public static function get_cover_settings() {
+        $default = array(
+            'images' => array(), // List of image URLs
+            'welcome_msg' => 'أهلاً بك في البوابة الرقمية للنقابة',
+            'welcome_sub_msg' => '', // Smaller paragraph below the welcome message
+            'login_btn_label' => 'تسجيل الدخول',
+            'services_btn_label' => 'الخدمات الإلكترونية',
+            'filter_intensity' => '0', // Blur or dark filter? User said "filter intensity"
+            'filter_color' => 'rgba(0,0,0,0.3)',
+            'is_slider' => '0',
+            'slider_interval' => '5000'
+        );
+        return get_option('sm_cover_settings', $default);
+    }
+
+    public static function save_cover_settings($data) {
+        update_option('sm_cover_settings', $data);
     }
 }
