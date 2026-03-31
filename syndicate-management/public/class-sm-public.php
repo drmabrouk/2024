@@ -524,10 +524,10 @@ class SM_Public {
 
         ob_start();
         ?>
-        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:240px; border-radius:15px; overflow:hidden; margin:0; box-shadow:none;">
+        <div class="sm-cover-box" dir="rtl" style="position:relative; width:100%; height:320px; border-radius:15px; overflow:hidden; margin:0; box-shadow:none;">
             <div class="sm-cover-slider" style="width:100%; height:100%; position:relative;">
                 <?php foreach($images as $idx => $img): ?>
-                    <div class="sm-cover-slide <?php echo $idx === 0 ? 'active' : ''; ?>" style="position:absolute; top:0; left:0; width:100%; height:100%; background:url('<?php echo esc_url($img); ?>') center/cover no-repeat; opacity:<?php echo $idx === 0 ? '1' : '0'; ?>; transition: opacity 1s ease-in-out;">
+                    <div class="sm-cover-slide <?php echo $idx === 0 ? 'active' : ''; ?>" style="position:absolute; top:0; left:0; width:100%; height:100%; background:url('<?php echo esc_url($img); ?>') center/cover no-repeat; opacity:<?php echo $idx === 0 ? '1' : '0'; ?>; transition: opacity 1s ease-in-out; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
                         <div class="sm-cover-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:<?php echo esc_attr($settings['filter_color']); ?>; backdrop-filter: blur(<?php echo intval($settings['filter_intensity']); ?>px);"></div>
                     </div>
                 <?php endforeach; ?>
@@ -553,11 +553,11 @@ class SM_Public {
             <style>
                 .sm-btn-cover:hover { opacity: 0.9; }
                 @media (max-width: 768px) {
-                    .sm-cover-box { height: 200px !important; border-radius: 10px !important; }
+                    .sm-cover-box { height: 260px !important; border-radius: 10px !important; }
                     .sm-cover-content { padding: 0 20px !important; align-items: center !important; text-align: center !important; }
-                    .sm-cover-title { font-size: 1.3em !important; }
-                    .sm-cover-desc { font-size: 12px !important; margin: 8px 0 15px 0 !important; }
-                    .sm-btn-cover { height: 32px !important; padding: 0 15px !important; font-size: 12px !important; }
+                    .sm-cover-title { font-size: 1.35em !important; }
+                    .sm-cover-desc { font-size: 12.5px !important; margin: 10px 0 18px 0 !important; }
+                    .sm-btn-cover { height: 34px !important; padding: 0 18px !important; font-size: 12.5px !important; }
                 }
             </style>
 
