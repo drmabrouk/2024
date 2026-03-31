@@ -869,6 +869,20 @@ class SM_Member_Manager {
                 wp_send_json_error(['message' => $mid->get_error_message()]);
             }
 
+            // Record Membership Payment automatically upon approval
+            $fin_settings = SM_Settings::get_finance_settings();
+            $membership_fee = (float)($fin_settings['membership_new'] ?? 480);
+
+            SM_Finance::record_payment([
+                'member_id' => $mid,
+                'amount' => $membership_fee,
+                'payment_type' => 'membership',
+                'payment_date' => current_time('Y-m-d'),
+                'target_year' => (int)date('Y'),
+                'details_ar' => 'رسوم اشتراك عضوية جديدة (تم السداد عند الاعتماد) - طلب رقم ' . $rid,
+                'notes' => 'طريقة الدفع: ' . ($req->payment_method ?: 'manual')
+            ]);
+
             if ($req->doc_photo_url) {
                 SM_DB::update_member_photo($mid, $req->doc_photo_url);
             }
