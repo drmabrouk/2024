@@ -12,7 +12,26 @@ class SM_Service_Manager {
         $services = SM_DB::get_services(['status' => 'active']);
         $is_logged_in = is_user_logged_in();
         $login_url = home_url('/sm-login');
-        $current_member = $is_logged_in ? SM_DB::get_member_by_username(wp_get_current_user()->user_login) : null;
+        $current_user = wp_get_current_user();
+        $current_member = $is_logged_in ? SM_DB::get_member_by_username($current_user->user_login) : null;
+
+        $role_label = '';
+        if ($is_logged_in) {
+            $role_names = [
+                'administrator' => 'مدير النظام',
+                'sm_general_officer' => 'مسؤول النقابة العامة',
+                'sm_branch_officer' => 'مسؤول نقابة فرعي',
+                'sm_member' => 'عضو النقابة'
+            ];
+            $role = reset($current_user->roles);
+            $role_label = $role_names[$role] ?? $role;
+        }
+
+        $is_member_role = $is_logged_in && in_array('sm_member', (array)$current_user->roles);
+        // If they have admin/officer roles, they are not "just" a member for this UI logic
+        if (current_user_can('sm_manage_members') || current_user_can('manage_options')) {
+            $is_member_role = false;
+        }
 
         $categories = ['الكل'];
         foreach ($services as $s) {

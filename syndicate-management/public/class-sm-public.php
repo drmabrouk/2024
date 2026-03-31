@@ -274,33 +274,33 @@ class SM_Public {
     public function shortcode_cover_2() {
         ob_start();
         ?>
-        <div class="sm-cover-box sm-cover-v2" dir="rtl" style="position:relative; width:100%; height:400px; border-radius:25px; overflow:hidden; margin:40px 0; background: linear-gradient(135deg, var(--sm-primary-color) 0%, var(--sm-dark-color) 100%); display:flex; align-items:center; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
-            <div style="position:absolute; top:-50px; right:-50px; width:200px; height:200px; background:rgba(255,255,255,0.05); border-radius:50%;"></div>
-            <div style="position:absolute; bottom:-80px; left:10%; width:300px; height:300px; background:rgba(255,255,255,0.03); border-radius:50%;"></div>
+        <div class="sm-cover-box sm-cover-v2" dir="rtl" style="position:relative; width:100%; height:300px; border-radius:20px; overflow:hidden; margin:40px 0; background: linear-gradient(135deg, var(--sm-primary-color) 0%, var(--sm-dark-color) 100%); display:flex; align-items:center; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+            <div style="position:absolute; top:-50px; right:-50px; width:180px; height:180px; background:rgba(255,255,255,0.05); border-radius:50%;"></div>
+            <div style="position:absolute; bottom:-70px; left:10%; width:250px; height:250px; background:rgba(255,255,255,0.03); border-radius:50%;"></div>
 
-            <div class="sm-cover-content" style="position:relative; z-index:10; padding:0 60px; color:#fff; width:100%;">
-                <div style="display:inline-flex; align-items:center; justify-content:center; width:60px; height:60px; background:rgba(255,255,255,0.1); border-radius:20px; margin-bottom:25px; backdrop-filter:blur(10px);">
-                    <span class="dashicons dashicons-shield-check" style="font-size:30px; width:30px; height:30px; color:#fff;"></span>
+            <div class="sm-cover-content" style="position:relative; z-index:10; padding:0 50px; color:#fff; width:100%;">
+                <div style="display:inline-flex; align-items:center; justify-content:center; width:50px; height:50px; background:rgba(255,255,255,0.1); border-radius:15px; margin-bottom:15px; backdrop-filter:blur(10px);">
+                    <span class="dashicons dashicons-shield-check" style="font-size:24px; width:24px; height:24px; color:#fff;"></span>
                 </div>
-                <h2 style="font-size:2.4em; font-weight:900; margin:0; color:#fff; line-height:1.2;">بوابة التحقق الرقمية الموحدة</h2>
-                <p style="font-size:18px; font-weight:400; margin:15px 0 35px 0; color:rgba(255,255,255,0.8); max-width:700px; line-height:1.6;">تأكد من صحة بيانات العضوية، التراخيص المهنية، وتصاريح المنشآت بشكل فوري عبر البوابة الرسمية للنقابة لضمان الشفافية والموثوقية.</p>
+                <h2 style="font-size:1.8em; font-weight:900; margin:0; color:#fff; line-height:1.2;">بوابة التحقق الرقمية الموحدة</h2>
+                <p style="font-size:14px; font-weight:400; margin:10px 0 25px 0; color:rgba(255,255,255,0.8); max-width:650px; line-height:1.6;">تأكد من صحة بيانات العضوية، التراخيص المهنية، وتصاريح المنشآت بشكل فوري عبر البوابة الرسمية للنقابة لضمان الشفافية والموثوقية.</p>
                 <div style="display:flex; gap:15px;">
-                    <a href="<?php echo home_url('/verify'); ?>" class="sm-btn-cover" style="height:55px; padding:0 40px; font-weight:800; border-radius:15px; font-size:16px; display:flex; align-items:center; background:#fff; color:var(--sm-primary-color) !important; text-decoration:none !important; transition:0.3s transform;">
+                    <a href="<?php echo home_url('/verify'); ?>" class="sm-btn-cover" style="height:48px; padding:0 30px; font-weight:800; border-radius:12px; font-size:14px; display:flex; align-items:center; background:rgba(255,255,255,0.1); color:#fff !important; border:1px solid rgba(255,255,255,0.25); backdrop-filter:blur(15px); text-decoration:none !important; transition:0.3s all; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
                         الدخول لبوابة التحقق
-                        <span class="dashicons dashicons-arrow-left-alt2" style="margin-right:10px;"></span>
+                        <span class="dashicons dashicons-arrow-left-alt2" style="margin-right:8px;"></span>
                     </a>
                 </div>
             </div>
 
             <style>
-                .sm-cover-v2 .sm-btn-cover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+                .sm-cover-v2 .sm-btn-cover:hover { transform: translateY(-2px); background:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
                 @media (max-width: 768px) {
-                    .sm-cover-v2 { height: auto !important; padding: 60px 0 !important; border-radius: 20px !important; }
-                    .sm-cover-v2 .sm-cover-content { padding: 0 30px !important; text-align: center !important; }
+                    .sm-cover-v2 { height: auto !important; padding: 50px 0 !important; border-radius: 15px !important; }
+                    .sm-cover-v2 .sm-cover-content { padding: 0 25px !important; text-align: center !important; }
                     .sm-cover-v2 .sm-cover-content div { justify-content: center !important; margin-left:auto; margin-right:auto; }
-                    .sm-cover-v2 h2 { font-size: 1.8em !important; }
-                    .sm-cover-v2 p { font-size: 15px !important; }
-                    .sm-cover-v2 .sm-btn-cover { width:100%; justify-content:center; height:50px !important; }
+                    .sm-cover-v2 h2 { font-size: 1.5em !important; }
+                    .sm-cover-v2 p { font-size: 13.5px !important; }
+                    .sm-cover-v2 .sm-btn-cover { width:100%; justify-content:center; height:45px !important; }
                 }
             </style>
         </div>
