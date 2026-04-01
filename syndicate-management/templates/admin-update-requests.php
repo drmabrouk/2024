@@ -13,13 +13,9 @@ $degrees = SM_Settings::get_academic_degrees();
 ?>
 
 <div class="sm-admin-dashboard" dir="rtl">
-    <div class="sm-header">
-        <div class="sm-header-title">
-            <div>
-                <h1>طلبات تحديث البيانات</h1>
-                <p>مراجعة واعتماد طلبات التعديل المقدمة من الأعضاء</p>
-            </div>
-        </div>
+    <div style="margin-bottom: 25px;">
+        <h2 style="margin:0; font-weight: 800; color: var(--sm-dark-color);">طلبات تحديث البيانات</h2>
+        <p style="margin:5px 0 0 0; color:#64748b; font-size:13px;">مراجعة واعتماد طلبات التعديل المقدمة من الأعضاء</p>
     </div>
 
     <div class="sm-filters-bar" style="margin-bottom: 20px;">

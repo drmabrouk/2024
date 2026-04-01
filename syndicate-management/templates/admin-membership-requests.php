@@ -30,7 +30,7 @@ $status_labels = [
 ];
 ?>
 <div class="sm-content-wrapper" dir="rtl">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <div>
             <h2 style="margin:0; font-weight: 800; color: var(--sm-dark-color);">إدارة طلبات العضوية</h2>
             <p style="margin:5px 0 0 0; color:#64748b; font-size:13px;">مراجعة طلبات الانضمام الجديدة، التحقق من السداد، وفحص المستندات.</p>
