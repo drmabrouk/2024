@@ -23,7 +23,11 @@ class SM_Auth {
         $syndicate = SM_Settings::get_syndicate_info();
         ob_start();
         ?>
+feature-soft-delete-licenses-1340169276736387863
+        <div class="sm-login-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 80px 20px; background: #f8fafc; border-radius: 20px; margin: 0;">
+=======
         <div class="sm-login-container" style="display: flex; justify-content: center; align-items: center; min-height: 600px; padding: 80px 20px; background: #f8fafc; border-radius: 20px; margin: 40px 0;">
+main
             <div class="sm-login-box" style="width: 100%; max-width: 420px; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #f1f5f9;" dir="rtl">
                 <div style="background: #e2e8f0; padding: 30px 25px; text-align: center; color: var(--sm-dark-color); position: relative; border-bottom: 1px solid #cbd5e0;">
                     <?php if (!empty($syndicate['syndicate_logo'])): ?>
