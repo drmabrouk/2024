@@ -68,57 +68,6 @@ $member_is_admin_role = !empty($target_user->roles) && array_intersect($target_u
     </script>
     <input type="file" id="member-photo-input" style="display:none;" accept="image/*" onchange="smUploadMemberPhoto(<?php echo $member->id; ?>)">
 
-    <?php if (!$is_restricted): ?>
-        <!-- MANAGEMENT TOP BAR -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: #fff; padding: 25px 30px; border-radius: 16px; border: 1px solid var(--sm-border-color); box-shadow: var(--sm-shadow);">
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div style="position: relative; width: 75px; height: 75px;">
-                    <div id="member-photo-container" style="width: 100%; height: 100%; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; border: 3px solid var(--sm-primary-color); overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <?php if ($member->photo_url): ?>
-                            <img src="<?php echo esc_url($member->photo_url); ?>" style="width:100%; height:100%; object-fit:cover;">
-                        <?php else: ?>
-                            👤
-                        <?php endif; ?>
-                    </div>
-                    <button onclick="smTriggerPhotoUpload()" style="position: absolute; bottom: 0; right: 0; background: var(--sm-primary-color); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 2px solid #fff;">
-                        <span class="dashicons dashicons-camera" style="font-size: 14px; width: 14px; height: 14px;"></span>
-                    </button>
-                </div>
-                <div>
-                    <h2 style="margin:0; font-weight:900; color: var(--sm-dark-color);"><?php echo esc_html($member->name); ?></h2>
-                    <div style="display: flex; gap: 8px; margin-top: 6px;">
-                        <?php if (!$member_is_admin_role): ?>
-                            <span class="sm-badge sm-badge-low" style="font-size: 11px;"><?php echo $grades[$member->professional_grade] ?? $member->professional_grade; ?></span>
-                        <?php endif; ?>
-                        <span class="sm-badge" style="background: #edf2f7; color: #4a5568; font-size: 11px;"><?php echo esc_html(SM_Settings::get_branch_name($member->governorate)); ?></span>
-                    </div>
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <?php if (current_user_can('sm_manage_members')): ?>
-                    <button onclick='editSmMember(<?php echo esc_attr(wp_json_encode(array_merge((array)$member, ["is_admin_role" => $member_is_admin_role, "user_login" => $target_user->user_login, "account_status" => get_user_meta($member->wp_user_id, "sm_account_status", true) ?: "active"]))); ?>)' class="sm-btn" style="background: #3182ce; width: auto; height:42px;"><span class="dashicons dashicons-edit"></span> تعديل البيانات</button>
-                <?php endif; ?>
-
-                <div class="sm-dropdown" style="position:relative;">
-                    <button class="sm-btn" style="background: #1a202c; width: auto; height:42px;" onclick="smToggleFinanceDropdown()"><span class="dashicons dashicons-money-alt"></span> المعاملات المالية <span class="dashicons dashicons-arrow-down-alt2" style="font-size: 10px;"></span></button>
-                    <div id="sm-finance-dropdown" style="display:none; position:absolute; left:0; top:110%; background:white; border:1px solid #e2e8f0; border-radius:12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); z-index:100; min-width:220px; padding:10px 0; animation: smFadeIn 0.2s ease;">
-                        <?php if (current_user_can('sm_manage_finance')): ?>
-                            <a href="javascript:smOpenFinanceModal(<?php echo $member->id; ?>)" class="sm-dropdown-item"><span class="dashicons dashicons-plus"></span> تسجيل سداد مالي</a>
-                        <?php endif; ?>
-                        <a href="<?php echo add_query_arg('sm_tab', 'financial-logs'); ?>&member_search=<?php echo urlencode($member->national_id); ?>" class="sm-dropdown-item"><span class="dashicons dashicons-media-spreadsheet"></span> الأرشيف المالي للعضو</a>
-                    </div>
-                </div>
-
-                <?php if (current_user_can('sm_print_reports')): ?>
-                    <a href="<?php echo admin_url('admin-ajax.php?action=sm_print&print_type=id_card&member_id='.$member->id); ?>" target="_blank" class="sm-btn" style="background: #38a169; width: auto; height:42px; text-decoration:none; display:flex; align-items:center; gap:8px;"><span class="dashicons dashicons-id-alt"></span> طباعة الكارنيه</a>
-                <?php endif; ?>
-
-                <?php if ($is_sys_manager || $is_admin): ?>
-                    <button onclick="deleteMember(<?php echo $member->id; ?>, '<?php echo esc_js($member->name); ?>')" class="sm-btn" style="background: #e53e3e; width: auto; height:42px;"><span class="dashicons dashicons-trash"></span> حذف</button>
-                <?php endif; ?>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <?php if ($is_restricted): ?>
     <div class="sm-portal-layout-container" style="display: flex; gap: 30px;">
