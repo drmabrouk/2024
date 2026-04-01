@@ -204,6 +204,7 @@ class Syndicate_Management {
 
             // Auth Module
             'sm_update_profile_ajax' => ['SM_Auth', 'ajax_update_profile'],
+            'sm_clear_site_cache' => ['SM_Auth', 'ajax_clear_site_cache'],
             'sm_acknowledge_alert_ajax' => ['SM_Auth', 'ajax_acknowledge_alert_ajax'],
             'sm_forgot_password_otp' => ['SM_Auth', 'ajax_forgot_password_otp'],
             'sm_reset_password_otp' => ['SM_Auth', 'ajax_reset_password_otp'],

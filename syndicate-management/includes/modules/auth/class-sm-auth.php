@@ -23,15 +23,7 @@ class SM_Auth {
         $syndicate = SM_Settings::get_syndicate_info();
         ob_start();
         ?>
-<<<<<< feature/soft-delete-licenses-1340169276736387863
         <div class="sm-login-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 80px 20px; background: #f8fafc; border-radius: 20px; margin: 0;">
-=======
-feature-soft-delete-licenses-1340169276736387863
-        <div class="sm-login-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 80px 20px; background: #f8fafc; border-radius: 20px; margin: 0;">
-=======
-        <div class="sm-login-container" style="display: flex; justify-content: center; align-items: center; min-height: 600px; padding: 80px 20px; background: #f8fafc; border-radius: 20px; margin: 40px 0;">
-main
->>>>>> main
             <div class="sm-login-box" style="width: 100%; max-width: 420px; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #f1f5f9;" dir="rtl">
                 <div style="background: #e2e8f0; padding: 30px 25px; text-align: center; color: var(--sm-dark-color); position: relative; border-bottom: 1px solid #cbd5e0;">
                     <?php if (!empty($syndicate['syndicate_logo'])): ?>
@@ -106,20 +98,33 @@ main
         }
         $user = wp_get_current_user();
         $is_restricted = !current_user_can('sm_branch_access') && !current_user_can('sm_full_access');
-        $greeting = ((int)current_time('G') >= 5 && (int)current_time('G') < 12) ? 'صباح الخير' : 'مساء الخير';
+        $dashboard_url = $is_restricted ? home_url('/my-account') : home_url('/dashboard');
+
+        // Refined dynamic greeting
+        $hour = (int)current_time('G');
+        if ($hour >= 5 && $hour < 12) $greeting = 'صباح الخير';
+        elseif ($hour >= 12 && $hour < 17) $greeting = 'طاب يومك';
+        elseif ($hour >= 17 && $hour < 21) $greeting = 'مساء الخير';
+        else $greeting = 'تصبح على خير';
+
         ob_start();
         ?>
-        <div class="sm-topbar-user-wrap" style="position:relative; display:flex; align-items:center; gap:15px; margin:0; padding:0;" dir="rtl">
+        <div class="sm-topbar-user-wrap" style="position:relative; display:flex; align-items:center; gap:12px; margin:0; padding:0;" dir="rtl">
 
-            <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center;">
                 <!-- Homepage Icon -->
-                <a href="<?php echo home_url(); ?>" class="sm-header-circle-icon" title="الرئيسية" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:50%; color:#4a5568; text-decoration:none;">
-                    <span class="dashicons dashicons-admin-home" style="font-size:16px; width:16px; height:16px;"></span>
+                <a href="<?php echo home_url(); ?>" class="sm-header-circle-icon" title="الرئيسية" style="width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:50%; color:#4a5568; text-decoration:none; transition:0.2s;">
+                    <span class="dashicons dashicons-admin-home" style="font-size:18px; width:18px; height:18px;"></span>
+                </a>
+
+                <!-- Dashboard/Account Icon -->
+                <a href="<?php echo $dashboard_url; ?>" class="sm-header-circle-icon" title="<?php echo $is_restricted ? 'حسابي' : 'لوحة التحكم'; ?>" style="width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:50%; color:var(--sm-primary-color); text-decoration:none; transition:0.2s;">
+                    <span class="dashicons <?php echo $is_restricted ? 'dashicons-admin-users' : 'dashicons-dashboard'; ?>" style="font-size:18px; width:18px; height:18px;"></span>
                 </a>
 
                 <!-- Messages Icon -->
-                <a href="<?php echo $is_restricted ? add_query_arg(['sm_tab' => 'my-profile', 'profile_tab' => 'correspondence'], home_url('/my-account')) : add_query_arg('sm_tab', 'messaging', home_url('/dashboard')); ?>" class="sm-header-circle-icon" title="المراسلات والشكاوى" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:50%; color:#4a5568; text-decoration:none; position:relative;">
-                    <span class="dashicons dashicons-email" style="font-size:16px; width:16px; height:16px;"></span>
+                <a href="<?php echo $is_restricted ? add_query_arg(['sm_tab' => 'my-profile', 'profile_tab' => 'correspondence'], home_url('/my-account')) : add_query_arg('sm_tab', 'messaging', home_url('/dashboard')); ?>" class="sm-header-circle-icon" title="المراسلات والشكاوى" style="width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:50%; color:#4a5568; text-decoration:none; position:relative;">
+                    <span class="dashicons dashicons-email" style="font-size:18px; width:18px; height:18px;"></span>
                     <?php
                     $unread_msgs = SM_DB_Communications::get_unread_count($user->ID);
                     if ($is_restricted) {
@@ -130,14 +135,14 @@ main
                         }
                     }
                     if ($unread_msgs > 0): ?>
-                        <span class="sm-icon-badge" style="position:absolute; top:-5px; right:-5px; background:#e53e3e; color:#fff; font-size:9px; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-weight:800;"><?php echo $unread_msgs; ?></span>
+                        <span class="sm-icon-badge" style="position:absolute; top:-4px; right:-4px; background:#e53e3e; color:#fff; font-size:9px; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-weight:800;"><?php echo $unread_msgs; ?></span>
                     <?php endif; ?>
                 </a>
 
                 <!-- Notifications Icon -->
                 <div class="sm-notifications-dropdown" style="position: relative;">
-                    <a href="javascript:void(0)" onclick="smToggleNotifications()" class="sm-header-circle-icon" title="التنبيهات" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:50%; color:#4a5568; text-decoration:none; position:relative;">
-                        <span class="dashicons dashicons-bell" style="font-size:16px; width:16px; height:16px;"></span>
+                    <a href="javascript:void(0)" onclick="smToggleNotifications()" class="sm-header-circle-icon" title="التنبيهات" style="width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:50%; color:#4a5568; text-decoration:none; position:relative;">
+                        <span class="dashicons dashicons-bell" style="font-size:18px; width:18px; height:18px;"></span>
                         <?php
                         $notif_alerts = [];
                         if ($is_restricted) {
@@ -159,78 +164,94 @@ main
                             $notif_alerts[] = ['text' => $sa->title, 'type' => 'system', 'id' => $sa->id, 'details' => $sa->message];
                         }
                         if (count($notif_alerts) > 0): ?>
-                            <span class="sm-icon-badge" style="position:absolute; top:-5px; right:-5px; background:#f6ad55; color:#fff; font-size:9px; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-weight:800;"><?php echo count($notif_alerts); ?></span>
+                            <span class="sm-icon-badge" style="position:absolute; top:-4px; right:-4px; background:#f6ad55; color:#fff; font-size:9px; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-weight:800;"><?php echo count($notif_alerts); ?></span>
                         <?php endif; ?>
                     </a>
-                    <div id="sm-notifications-menu" style="display: none; position: absolute; top: 120%; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 12px; width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100000; padding: 15px; text-align:right;">
-                        <h4 style="margin: 0 0 10px 0; font-size: 13px; border-bottom: 1px solid #eee; padding-bottom: 8px; font-weight:800;">التنبيهات والإشعارات</h4>
-                        <?php if (empty($notif_alerts)): ?>
-                            <div style="font-size: 11px; color: #94a3b8; text-align: center; padding: 15px;">لا توجد تنبيهات جديدة حالياً</div>
-                        <?php else: ?>
-                            <?php foreach ($notif_alerts as $a): ?>
-                                <div style="font-size: 11px; padding: 8px 0; border-bottom: 1px solid #f9fafb; color: #4a5568; display: flex; gap: 8px; align-items: flex-start;">
-                                    <span class="dashicons <?php echo $a['type'] == 'system' ? 'dashicons-megaphone' : 'dashicons-warning'; ?>" style="font-size: 14px; color: <?php echo $a['type'] == 'system' ? 'var(--sm-primary-color)' : '#d69e2e'; ?>;"></span>
-                                    <span>
-                                        <strong style="display:block; margin-bottom:2px;"><?php echo esc_html($a['text']); ?></strong>
-                                        <?php if($a['type'] == 'system'): ?>
-                                            <div style="font-size:10px; color:#718096; margin-bottom:5px;"><?php echo esc_html(mb_strimwidth(strip_tags($a['details']), 0, 80, "...")); ?></div>
-                                            <a href="javascript:smAcknowledgeAlert(<?php echo intval($a['id']); ?>)" style="font-size:10px; color:var(--sm-primary-color); font-weight:700;">عرض التفاصيل / إغلاق</a>
-                                        <?php endif; ?>
-                                    </span>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                    <div id="sm-notifications-menu" style="display: none; position: absolute; top: 120%; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 12px; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 100000; padding: 20px; text-align:right;">
+                        <h4 style="margin: 0 0 15px 0; font-size: 14px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; font-weight:900; color:var(--sm-dark-color);">التنبيهات والإشعارات</h4>
+                        <div style="max-height: 350px; overflow-y: auto;">
+                            <?php if (empty($notif_alerts)): ?>
+                                <div style="font-size: 12px; color: #94a3b8; text-align: center; padding: 20px;">لا توجد تنبيهات جديدة حالياً</div>
+                            <?php else: ?>
+                                <?php foreach ($notif_alerts as $a): ?>
+                                    <div style="font-size: 12px; padding: 10px 0; border-bottom: 1px solid #f9fafb; color: #4a5568; display: flex; gap: 12px; align-items: flex-start;">
+                                        <span class="dashicons <?php echo $a['type'] == 'system' ? 'dashicons-megaphone' : 'dashicons-warning'; ?>" style="font-size: 16px; color: <?php echo $a['type'] == 'system' ? 'var(--sm-primary-color)' : '#d69e2e'; ?>;"></span>
+                                        <span>
+                                            <strong style="display:block; margin-bottom:4px; color:var(--sm-dark-color);"><?php echo esc_html($a['text']); ?></strong>
+                                            <?php if($a['type'] == 'system'): ?>
+                                                <div style="font-size:10px; color:#718096; margin-bottom:8px; line-height:1.5;"><?php echo esc_html(mb_strimwidth(strip_tags($a['details']), 0, 100, "...")); ?></div>
+                                                <a href="javascript:smAcknowledgeAlert(<?php echo intval($a['id']); ?>)" style="font-size:10px; color:var(--sm-primary-color); font-weight:800; text-decoration:none;">عرض التفاصيل / إغلاق</a>
+                                            <?php endif; ?>
+                                        </span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="sm-user-dropdown">
-                <div class="sm-user-profile-nav" onclick="smToggleUserDropdown()" style="display: flex; align-items: center; gap: 10px; background: #fff; padding: 5px 10px; border-radius: 50px; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s;">
+                <div class="sm-user-profile-nav" onclick="smToggleUserDropdown()" style="display: flex; align-items: center; gap: 12px; background: #fff; padding: 6px 14px; border-radius: 50px; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="text-align: right;">
-                        <div style="font-size: 11px; font-weight: 700; color: var(--sm-dark-color); line-height: 1.2;"><?php echo $greeting . '، ' . $user->display_name; ?></div>
-                        <div style="font-size: 9px; color: #38a169;">متصل الآن <span class="dashicons dashicons-arrow-down-alt2" style="font-size: 8px; width: 8px; height: 8px;"></span></div>
+                        <div style="font-size: 12px; font-weight: 800; color: var(--sm-dark-color); line-height: 1.2;"><?php echo $greeting . '، ' . $user->display_name; ?></div>
+                        <div style="font-size: 10px; color: #38a169; font-weight:600;">متصل الآن <span class="dashicons dashicons-arrow-down-alt2" style="font-size: 9px; width: 9px; height: 9px;"></span></div>
                     </div>
-                    <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; border: 2px solid var(--sm-primary-color); flex-shrink: 0;">
-                        <?php echo get_avatar($user->ID, 28, '', '', array('style' => 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;')); ?>
+                    <div style="width: 34px; height: 34px; border-radius: 50%; overflow: hidden; border: 2px solid var(--sm-primary-color); flex-shrink: 0; box-shadow: 0 0 0 2px rgba(246, 48, 73, 0.1);">
+                        <?php echo get_avatar($user->ID, 34, '', '', array('style' => 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;')); ?>
                     </div>
                 </div>
-                <div id="sm-user-dropdown-menu" style="display: none; position: absolute; top: 110%; right: 0; background: white; border: 1px solid var(--sm-border-color); border-radius: 12px; width: 280px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 100000; animation: smFadeIn 0.2s ease-out; padding: 8px 0; margin: 0; text-align:right;">
+                <div id="sm-user-dropdown-menu" style="display: none; position: absolute; top: 120%; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 16px; width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); z-index: 100000; animation: smFadeIn 0.3s ease-out; padding: 10px 0; margin: 0; text-align:right; overflow:hidden;">
+
                     <div id="sm-profile-view">
-                        <div style="padding: 10px 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 5px;">
-                            <div style="font-weight: 800; color: var(--sm-dark-color);"><?php echo $user->display_name; ?></div>
-                            <div style="font-size: 11px; color: var(--sm-text-gray);"><?php echo $user->user_email; ?></div>
+                        <div style="padding: 20px; border-bottom: 1px solid #f1f5f9; background: #fcfcfc; display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 55px; height: 55px; border-radius: 50%; overflow: hidden; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink:0;">
+                                <?php echo get_avatar($user->ID, 55, '', '', array('style' => 'width: 100%; height: 100%; object-fit: cover;')); ?>
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-weight: 900; color: var(--sm-dark-color); font-size:1.1em;"><?php echo $user->display_name; ?></div>
+                                <div style="font-size: 11px; color: #718096; word-break: break-all; margin-top:2px;"><?php echo $user->user_email; ?></div>
+                            </div>
                         </div>
-                        <?php if (!in_array('sm_member', (array)$user->roles)): ?>
-                            <a href="javascript:smEditProfile()" class="sm-dropdown-item"><span class="dashicons dashicons-edit"></span> تعديل البيانات الشخصية</a>
-                        <?php else: ?>
-                            <a href="javascript:smEditProfile()" class="sm-dropdown-item"><span class="dashicons dashicons-lock"></span> تغيير كلمة المرور</a>
-                        <?php endif; ?>
-                        <?php if (current_user_can('manage_options')): ?>
-                            <a href="<?php echo add_query_arg('sm_tab', 'global-settings', home_url('/dashboard')); ?>" class="sm-dropdown-item"><span class="dashicons dashicons-admin-generic"></span> إعدادات النظام</a>
-                        <?php endif; ?>
-                        <a href="javascript:location.reload()" class="sm-dropdown-item"><span class="dashicons dashicons-update"></span> تحديث الصفحة</a>
+
+                        <div style="padding: 10px 0;">
+                            <a href="javascript:smEditProfile()" class="sm-dropdown-item"><span class="dashicons dashicons-admin-users"></span> تعديل بيانات الحساب</a>
+
+                            <?php if (current_user_can('manage_options')): ?>
+                                <a href="<?php echo add_query_arg('sm_tab', 'global-settings', home_url('/dashboard')); ?>" class="sm-dropdown-item"><span class="dashicons dashicons-admin-generic"></span> إعدادات النظام المتقدمة</a>
+                            <?php endif; ?>
+
+                            <a href="<?php echo home_url('/policies'); ?>" class="sm-dropdown-item"><span class="dashicons dashicons-shield"></span> سياسات الخصوصية والاستخدام</a>
+
+                            <a href="javascript:smRefreshAndClearCache()" class="sm-dropdown-item" style="color:var(--sm-primary-color);"><span class="dashicons dashicons-update"></span> تحديث شامل ومسح الكاش</a>
+                        </div>
                     </div>
-                    <div id="sm-profile-edit" style="display: none; padding: 15px;">
-                        <div style="font-weight: 800; margin-bottom: 15px; font-size: 13px; border-bottom: 1px solid #eee; padding-bottom: 10px;">تعديل الملف الشخصي</div>
-                        <div class="sm-form-group" style="margin-bottom: 10px;">
-                            <label class="sm-label" style="font-size: 11px;">الاسم المفضل:</label>
-                            <input type="text" id="sm_edit_display_name" class="sm-input" style="padding: 8px; font-size: 12px;" value="<?php echo esc_attr($user->display_name); ?>" <?php if (in_array('sm_member', (array)$user->roles)) echo 'disabled style="background:#f1f5f9; cursor:not-allowed;"'; ?>>
-                        </div>
-                        <div class="sm-form-group" style="margin-bottom: 10px;">
-                            <label class="sm-label" style="font-size: 11px;">البريد الإلكتروني:</label>
-                            <input type="email" id="sm_edit_user_email" class="sm-input" style="padding: 8px; font-size: 12px;" value="<?php echo esc_attr($user->user_email); ?>" <?php if (in_array('sm_member', (array)$user->roles)) echo 'disabled style="background:#f1f5f9; cursor:not-allowed;"'; ?>>
-                        </div>
+
+                    <div id="sm-profile-edit" style="display: none; padding: 25px;">
+                        <h3 style="font-weight: 900; margin: 0 0 20px 0; font-size: 15px; color:var(--sm-dark-color); border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">تحديث بيانات الحساب</h3>
+
                         <div class="sm-form-group" style="margin-bottom: 15px;">
-                            <label class="sm-label" style="font-size: 11px;">كلمة مرور جديدة (اختياري):</label>
-                            <input type="password" id="sm_edit_user_pass" class="sm-input" style="padding: 8px; font-size: 12px;" placeholder="********">
+                            <label class="sm-label" style="font-size: 12px; font-weight:700;">البريد الإلكتروني:</label>
+                            <input type="email" id="sm_edit_user_email" class="sm-input" style="padding: 10px 14px; font-size: 13px;" value="<?php echo esc_attr($user->user_email); ?>">
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="smSaveProfile()" class="sm-btn" style="flex: 1; height: 32px; font-size: 11px; padding: 0;">حفظ</button>
-                            <button onclick="document.getElementById('sm-profile-edit').style.display='none'; document.getElementById('sm-profile-view').style.display='block';" class="sm-btn sm-btn-outline" style="flex: 1; height: 32px; font-size: 11px; padding: 0;">إلغاء</button>
+
+                        <div class="sm-form-group" style="margin-bottom: 25px;">
+                            <label class="sm-label" style="font-size: 12px; font-weight:700;">كلمة مرور جديدة (اختياري):</label>
+                            <input type="password" id="sm_edit_user_pass" class="sm-input" style="padding: 10px 14px; font-size: 13px;" placeholder="أدخل كلمة مرور قوية...">
+                            <p style="font-size:10px; color:#94a3b8; margin-top:5px;">اتركها فارغة إذا كنت لا ترغب في تغييرها.</p>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="smSaveProfile()" class="sm-btn" style="flex: 2; height: 44px; font-weight:800;">حفظ التغييرات</button>
+                            <button onclick="document.getElementById('sm-profile-edit').style.display='none'; document.getElementById('sm-profile-view').style.display='block';" class="sm-btn sm-btn-outline" style="flex: 1; height: 44px; font-weight:700;">إلغاء</button>
                         </div>
                     </div>
-                    <hr style="margin: 5px 0; border: none; border-top: 1px solid #eee;">
-                    <a href="<?php echo wp_logout_url(home_url('/sm-login')); ?>" class="sm-dropdown-item" style="color: #e53e3e;"><span class="dashicons dashicons-logout"></span> تسجيل الخروج</a>
+
+                    <div style="background: #fcfcfc; padding: 10px 0; border-top: 1px solid #f1f5f9;">
+                        <a href="<?php echo wp_logout_url(home_url('/sm-login')); ?>" class="sm-dropdown-item" style="color: #e53e3e; font-weight:800;">
+                            <span class="dashicons dashicons-logout"></span> تسجيل خروج آمن
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -275,13 +296,11 @@ main
                 document.getElementById('sm-profile-edit').style.display = 'block';
             };
             window.smSaveProfile = function() {
-                const name = document.getElementById('sm_edit_display_name').value;
                 const email = document.getElementById('sm_edit_user_email').value;
                 const pass = document.getElementById('sm_edit_user_pass').value;
                 const action = 'sm_update_profile_ajax';
                 const formData = new FormData();
                 formData.append('action', action);
-                formData.append('display_name', name);
                 formData.append('user_email', email);
                 formData.append('user_pass', pass);
                 formData.append('nonce', '<?php echo wp_create_nonce("sm_profile_action"); ?>');
@@ -289,12 +308,25 @@ main
                 .then(r => r.json())
                 .then(res => {
                     if (res.success) {
-                        if (typeof smShowNotification === 'function') smShowNotification('تم تحديث الملف الشخصي بنجاح');
+                        if (typeof smShowNotification === 'function') smShowNotification('تم تحديث بيانات الحساب بنجاح');
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        if (typeof smHandleAjaxError === 'function') smHandleAjaxError(res.data, 'فشل تحديث الملف الشخصي');
+                        if (typeof smHandleAjaxError === 'function') smHandleAjaxError(res.data, 'فشل تحديث الحساب');
+                        else alert('فشل تحديث الحساب: ' + (res.data && res.data.message ? res.data.message : 'خطأ غير معروف'));
                     }
                 });
+            };
+            window.smRefreshAndClearCache = function() {
+                if (typeof smShowNotification === 'function') smShowNotification('جاري تحديث الموقع ومسح الكاش...');
+                const action = 'sm_clear_site_cache';
+                const formData = new FormData();
+                formData.append('action', action);
+                formData.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+                fetch(ajaxurl + '?action=' + action, { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(res => {
+                    location.reload(true);
+                }).catch(() => location.reload(true));
             };
             document.addEventListener('click', function(e) {
                 const dropdown = document.querySelector('.sm-user-dropdown');
@@ -467,6 +499,29 @@ main
         }
     }
 
+    public static function ajax_clear_site_cache() {
+        if (!current_user_can('manage_options') && !current_user_can('sm_manage_system')) {
+            wp_send_json_error(['message' => 'Unauthorized']);
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+
+        // 1. Clear all WordPress Transients
+        global $wpdb;
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_%'");
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_%'");
+
+        // 2. Clear common caching plugins
+        if (function_exists('wp_cache_flush')) { wp_cache_flush(); }
+        if (function_exists('w3tc_flush_all')) { w3tc_flush_all(); }
+        if (class_exists('WpFastestCache')) { $wpfc = new WpFastestCache(); $wpfc->deleteCache(); }
+        if (function_exists('rocket_clean_domain')) { rocket_clean_domain(); }
+        if (class_exists('AutoptimizeCache')) { AutoptimizeCache::clearall(); }
+        if (function_exists('sg_cachepress_purge_cache')) { sg_cachepress_purge_cache(); }
+
+        SM_Logger::log('مسح الكاش', "تم إجراء مسح شامل لكاش الموقع");
+        wp_send_json_success('Site cache cleared successfully');
+    }
+
     public static function ajax_acknowledge_alert_ajax() {
         try {
             if (!is_user_logged_in()) {
@@ -506,13 +561,11 @@ main
         $is_member = in_array('sm_member', (array)$user->roles);
 
         $data = ['ID' => $user_id];
-        $display_name = sanitize_text_field($_POST['display_name'] ?? '');
         $email = sanitize_email($_POST['user_email'] ?? '');
         $pass = $_POST['user_pass'] ?? '';
 
-        if (!$is_member) {
-            if (!empty($display_name)) $data['display_name'] = $display_name;
-            if (!empty($email)) $data['user_email'] = $email;
+        if (!empty($email)) {
+            $data['user_email'] = $email;
         }
 
         if (!empty($pass)) {
@@ -527,7 +580,7 @@ main
             wp_send_json_error(['message' => $res->get_error_message()]);
         }
 
-        if (!$is_member && !empty($email)) {
+        if (!empty($email)) {
             $member = SM_DB::get_member_by_wp_user_id($user_id);
             if ($member) {
                 SM_DB::update_member($member->id, ['email' => $email]);
